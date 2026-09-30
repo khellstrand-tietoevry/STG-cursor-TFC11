@@ -1,0 +1,6 @@
+           03  R791ERRX-External-Data.
+             05 R791ERRX-State Pic X(01) Value 'O'.
+                88 R791ERRX-State-OK Value 'O'.
+                88 R791ERRX-State-Error Value 'E'.
+                88 R791ERRX-State-Abend Value 'A'.
+             05 R791ERRX-SQL-Code Pic S9(09) Comp.

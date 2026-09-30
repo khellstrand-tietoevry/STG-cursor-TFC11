@@ -1,0 +1,48 @@
+{
+  "system": "TFC11",
+  "version": 1,
+  "reviews": {
+    "RULE-002": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "H invokes K then L in sequence",
+      "note": "Match Servo H-module: Perform K then L unconditionally; failures handled via R7919999 and S000-Status-Code, not by skipping L in H."
+    },
+    "RULE-004": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "Selected party requires type",
+      "note": "P0 for TFC11 customer-create envelope; test every selected party row with missing type."
+    },
+    "RULE-005": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "K-module initial check calls F115L050",
+      "note": "P0 contract; F115L050.src in legacy; implement traced backend port in transform phase for ftfc-l050."
+    },
+    "RULE-006": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "K propagates F115L050 errors",
+      "note": "Map Return-Abend vs Return-Error exactly as FTFCK110 E100 evaluate (FM / Z700 / Z900)."
+    },
+    "RULE-013": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "L-module status not unique",
+      "note": "Lock predicate with characterization test when ftfc-l110 is built; cite surrounding FTFCL110 branch."
+    },
+    "RULE-014": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "L-module no party on contract",
+      "note": "P1 customer-create path; test TF-SY-NO-PART when party loop finds no row."
+    },
+    "RULE-016": {
+      "verdict": "confirmed",
+      "at": "2026-09-30T11:02:00+02:00",
+      "title": "F115L050 update-timestamp check disabled on main path",
+      "note": "Java parity must not invoke E000 on main path while COBOL Perform E000 remains commented (Nina July note)."
+    }
+  }
+}

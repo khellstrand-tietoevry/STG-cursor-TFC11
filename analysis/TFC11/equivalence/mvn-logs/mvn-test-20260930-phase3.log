@@ -1,0 +1,193 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/usr/local/Cellar/maven/3.9.11/libexec/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] TFC11 modernization reactor                                        [pom]
+[INFO] ftfc-l050                                                          [jar]
+[INFO] ftfc-l030                                                          [jar]
+[INFO] ftfc-k110                                                          [jar]
+[INFO] ftfc-l110                                                          [jar]
+[INFO] ftfc-h110                                                          [jar]
+[INFO] 
+[INFO] -----------------< no.tieto.tfc11:tfc11-modernization >-----------------
+[INFO] Building TFC11 modernization reactor 0.1.0-SNAPSHOT                [1/6]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] ----------------------< no.tieto.tfc11:ftfc-l050 >----------------------
+[INFO] Building ftfc-l050 0.1.0-SNAPSHOT                                  [2/6]
+[INFO]   from ftfc-l050/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ftfc-l050 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l050/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ftfc-l050 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ftfc-l050 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l050/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ftfc-l050 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ftfc-l050 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running no.tieto.tfc11.l050.TracedInitialCheckBackendTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.113 s -- in no.tieto.tfc11.l050.TracedInitialCheckBackendTest
+[INFO] Running no.tieto.tfc11.l050.InitialCheckServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in no.tieto.tfc11.l050.InitialCheckServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------------------< no.tieto.tfc11:ftfc-l030 >----------------------
+[INFO] Building ftfc-l030 0.1.0-SNAPSHOT                                  [3/6]
+[INFO]   from ftfc-l030/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ftfc-l030 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l030/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ftfc-l030 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ftfc-l030 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l030/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ftfc-l030 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ftfc-l030 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running no.tieto.tfc11.l030.SetTimestampServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.130 s -- in no.tieto.tfc11.l030.SetTimestampServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------------------< no.tieto.tfc11:ftfc-k110 >----------------------
+[INFO] Building ftfc-k110 0.1.0-SNAPSHOT                                  [4/6]
+[INFO]   from ftfc-k110/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ftfc-k110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-k110/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ftfc-k110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ftfc-k110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-k110/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ftfc-k110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ftfc-k110 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running no.tieto.tfc11.k.KModuleValidatorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.189 s -- in no.tieto.tfc11.k.KModuleValidatorTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------------------< no.tieto.tfc11:ftfc-l110 >----------------------
+[INFO] Building ftfc-l110 0.1.0-SNAPSHOT                                  [5/6]
+[INFO]   from ftfc-l110/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ftfc-l110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l110/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ftfc-l110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ftfc-l110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-l110/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ftfc-l110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ftfc-l110 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running no.tieto.tfc11.l.LModuleLoaderTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.140 s -- in no.tieto.tfc11.l.LModuleLoaderTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] ----------------------< no.tieto.tfc11:ftfc-h110 >----------------------
+[INFO] Building ftfc-h110 0.1.0-SNAPSHOT                                  [6/6]
+[INFO]   from ftfc-h110/pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ftfc-h110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-h110/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ ftfc-h110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ftfc-h110 ---
+[INFO] skip non existing resourceDirectory /Users/kristofferhellstrand/git/tfi-workspace/STG-cursor-TFC11/modernized/TFC11/ftfc-h110/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ ftfc-h110 ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ ftfc-h110 ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running no.tieto.tfc11.h.HModuleOrchestratorTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.122 s -- in no.tieto.tfc11.h.HModuleOrchestratorTest
+[INFO] Running no.tieto.tfc11.h.HModuleOrchestratorPhase2Test
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in no.tieto.tfc11.h.HModuleOrchestratorPhase2Test
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for TFC11 modernization reactor 0.1.0-SNAPSHOT:
+[INFO] 
+[INFO] TFC11 modernization reactor ........................ SUCCESS [  0.004 s]
+[INFO] ftfc-l050 .......................................... SUCCESS [  2.688 s]
+[INFO] ftfc-l030 .......................................... SUCCESS [  1.337 s]
+[INFO] ftfc-k110 .......................................... SUCCESS [  1.493 s]
+[INFO] ftfc-l110 .......................................... SUCCESS [  1.545 s]
+[INFO] ftfc-h110 .......................................... SUCCESS [  1.329 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  9.237 s
+[INFO] Finished at: 2026-09-30T11:09:51+02:00
+[INFO] ------------------------------------------------------------------------

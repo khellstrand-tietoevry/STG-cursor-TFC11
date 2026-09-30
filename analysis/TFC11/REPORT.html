@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TFC11 — Modernization Report</title>
+  <style>
+    :root { --ok: #0a7; --warn: #c80; --muted: #555; }
+    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 980px; line-height: 1.45; color: #111; }
+    h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); margin-top: 0; }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0; }
+    .badge { padding: 0.25rem 0.65rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    .badge-ok { background: #e6f7f0; color: #065; border: 1px solid #9dd; }
+    .badge-warn { background: #fff8e6; color: #840; border: 1px solid #ec9; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+    th, td { border: 1px solid #ccc; padding: 0.45rem 0.65rem; text-align: left; vertical-align: top; }
+    th { background: #f4f4f4; }
+    a { color: #036; }
+    ul.compact { margin: 0.4rem 0; padding-left: 1.2rem; }
+    pre { background: #f4f4f4; padding: 0.75rem 1rem; overflow: auto; font-size: 0.85rem; }
+    footer { margin-top: 2.5rem; font-size: 0.85rem; color: var(--muted); border-top: 1px solid #ddd; padding-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>TFC11 — Create Customer modernization</h1>
+  <p class="subtitle">System <strong>STG/TFC11</strong> · Track: <strong>Transform</strong> (Java 21 / Spring Boot 3.x) · Session closed 2026-09-30</p>
+
+  <div class="badges">
+    <span class="badge badge-ok">Brief Phases 1–6 complete</span>
+    <span class="badge badge-ok">Verify: 46 tests, 0 failures</span>
+    <span class="badge badge-ok">P0 rules: 9/9 PROVEN (post-harden)</span>
+    <span class="badge badge-warn">Dual COBOL/Java: not run</span>
+  </div>
+
+  <h2>Executive summary</h2>
+  <p>
+    Legacy Servo flow <code>FTFCH110 → FTFCK110 → FTFCL110</code> and in-repo one-hop helpers were translated to a
+    Maven reactor under <code>modernized/TFC11/</code>. External mainframe programs and missing COPY members remain
+    behind ports/adapters per <a href="DECISIONS.md">DECISIONS.md</a>. Characterization tests trace behavior to
+    frozen COBOL under <code>legacy/STG/TFC11/</code>.
+  </p>
+
+  <h2>Pipeline status</h2>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Artifact</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Preflight</td><td><a href="PREFLIGHT.md">PREFLIGHT.md</a></td><td>Ready-with-gaps</td></tr>
+      <tr><td>Assess</td><td><a href="ASSESSMENT.md">ASSESSMENT.md</a></td><td>Transform</td></tr>
+      <tr><td>Map</td><td><a href="topology.json">topology.json</a>, <a href="TOPOLOGY.html">TOPOLOGY.html</a></td><td>Done</td></tr>
+      <tr><td>Rules</td><td><a href="BUSINESS_RULES.md">BUSINESS_RULES.md</a> (17 rules)</td><td>Done</td></tr>
+      <tr><td>Review / Brief</td><td><a href="MODERNIZATION_BRIEF.md">MODERNIZATION_BRIEF.md</a></td><td>Approved</td></tr>
+      <tr><td>Transform</td><td><a href="../../modernized/TFC11/">modernized/TFC11/</a> (6 phases)</td><td>Complete</td></tr>
+      <tr><td>Verify</td><td><a href="VERIFICATION.md">VERIFICATION.md</a></td><td>Complete</td></tr>
+      <tr><td>Harden</td><td><a href="HARDENING.md">HARDENING.md</a></td><td>Complete</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Java reactor modules</h2>
+  <table>
+    <thead><tr><th>Module</th><th>Legacy focus</th></tr></thead>
+    <tbody>
+      <tr><td><code>ftfc-h110</code></td><td>FTFCH110 orchestrator, F791TRAC / F7918030</td></tr>
+      <tr><td><code>ftfc-k110</code></td><td>FTFCK110 validation, F115L050, F115L280, E600 geo</td></tr>
+      <tr><td><code>ftfc-l110</code></td><td>FTFCL110 loader prep (ISR0/ITP0 ports)</td></tr>
+      <tr><td><code>ftfc-l050</code></td><td>F115L050 traced initial check</td></tr>
+      <tr><td><code>ftfc-l030</code></td><td>F115L030 timestamp slice</td></tr>
+      <tr><td><code>ftfc-f115i</code></td><td>F115IMC0 / ICU0 / ICA0 boundary</td></tr>
+      <tr><td><code>ftfc-f115r</code></td><td>F115IPA0, IRP0, ISC0, ISR0, ITP0</td></tr>
+      <tr><td><code>ftfc-l-ext</code></td><td>F115L140, L240, L280</td></tr>
+      <tr><td><code>ftfc-stg</code></td><td>BPOXING0, F791I060, F7918030, F791TRAC adapters</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Verification snapshot</h2>
+  <table>
+    <tr><th>Maven tests</th><td>46 (0 failures)</td></tr>
+    <tr><th>Characterization cases</th><td><a href="equivalence/cases.json">equivalence/cases.json</a> (26 scenarios)</td></tr>
+    <tr><th>Rule coverage</th><td><a href="equivalence/rule_coverage.json">equivalence/rule_coverage.json</a></td></tr>
+    <tr><th>Latest log</th><td><a href="equivalence/mvn-logs/mvn-test-20260930-harden.log">mvn-test-20260930-harden.log</a></td></tr>
+  </table>
+
+  <h2>P0 business rules (post-harden)</h2>
+  <p>All nine P0 rules in <a href="BUSINESS_RULES.md">BUSINESS_RULES.md</a> are <strong>PROVEN</strong> via JUnit and/or frozen legacy source anchors.</p>
+
+  <h2>Accepted gaps</h2>
+  <ul class="compact">
+    <li>51 external <code>CALL</code> programs without <code>.src</code> in this repo</li>
+    <li>89 unresolved COPY references in <code>corpus-manifest.json</code></li>
+    <li>No local GNU COBOL / dual-run parity lane in STG-cursor-TFC11</li>
+  </ul>
+
+  <h2>Repeat verification</h2>
+  <pre>cd modernized/TFC11 && mvn test
+# or
+bash analysis/TFC11/scripts/run-harden-verify.sh</pre>
+
+  <h2>Session journal</h2>
+  <p>Full command log: <a href="../../RUN_SEQUENCE.md">RUN_SEQUENCE.md</a> · Cursor handoff: <a href="CURSOR_SESSION_EXPORT.md">CURSOR_SESSION_EXPORT.md</a></p>
+
+  <footer>
+    Generated for code-modernization plugin closure · Repository: STG-cursor-TFC11 · Orchestration: max 5 parallel Task subagents.
+  </footer>
+</body>
+</html>

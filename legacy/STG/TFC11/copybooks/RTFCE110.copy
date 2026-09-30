@@ -1,0 +1,300 @@
+      ******************************************************************
+      *  Program XCTGTG00 executed                                     *
+      *     Date      : 9 Mar 2000                                     *
+      *     Time      : 13:36:17                                       *
+      *     User      : Z2106NL                                        *
+      *     Copy      : RTFCE110                                       *
+      *                                                                *
+      ******************************************************************
+      *                                                                *
+      *     Function  : TFC11                                          *
+      *     Version   : 01                                             *
+      *     Calls     : FTFCH110                                       *
+      *     Base      : DLI                                            *
+      *     Name      : Opplegg parter                                 *
+      *     Num. Item : 25                                             *
+      *     Num Rep   : 1                                              *
+      *
+           02  TFC11-V01.
+      *****************************************************************
+      *     Item   : 005
+      *     Descr  : Fin-Inst-No
+      *
+           05  RTFCE110-I-Fin-Inst-No-G.
+                 15  RTFCE110-I-Fin-Inst-No-I        Pic  x(01).
+                 15  RTFCE110-I-Fin-Inst-No-O        Pic  x(01).
+                 15  RTFCE110-I-Fin-Inst-No-X.
+                   20  RTFCE110-I-Fin-Inst-No-D      Pic  x(18).
+      *****************************************************************
+      *     Item   : 010
+      *     Descr  : Kontrakt-Type
+      *
+           05  RTFCE110-I-Contract-Type-G.
+                 15  RTFCE110-I-Contract-Type-I      Pic  x(01).
+                 15  RTFCE110-I-Contract-Type-O      Pic  x(01).
+                 15  RTFCE110-I-Contract-Type-X.
+                   20  RTFCE110-I-Contract-Type-D    Pic  x(3).
+      *****************************************************************
+      *     Item   : 011
+      *     Descr  : Kontrakt-Nr
+      *
+           05  RTFCE110-I-Contract-No-G.
+                 15  RTFCE110-I-Contract-No-I        Pic  x(01).
+                 15  RTFCE110-I-Contract-No-O        Pic  x(01).
+                 15  RTFCE110-I-Contract-No-X.
+                   20  RTFCE110-I-Contract-No-D      Pic  9(7).
+      *****************************************************************
+      *     Item   : 012
+      *     Descr  : Rate-Nr
+      *
+           05  RTFCE110-I-Part-Amount-No-G.
+                 15  RTFCE110-I-Part-Amount-No-I     Pic  x(01).
+                 15  RTFCE110-I-Part-Amount-No-O     Pic  x(01).
+                 15  RTFCE110-I-Part-Amount-No-X.
+                   20  RTFCE110-I-Part-Amount-No-D   Pic  9(2).
+      *****************************************************************
+      *     Item   : 030
+      *     Descr  : Sist-Lagret-Dato
+      *
+           05  RTFCE110-B-Last-Saved-Date-G.
+                 15  RTFCE110-B-Last-Saved-Date-I    Pic  x(01).
+                 15  RTFCE110-B-Last-Saved-Date-O    Pic  x(01).
+                 15  RTFCE110-B-Last-Saved-Date-X.
+                   20  RTFCE110-B-Last-Saved-Date-D  Pic  x(26).
+      *****************************************************************
+      *     Item   : 035
+      *     Descr  : Operasjons-Art
+      *
+           05  RTFCE110-I-Operation-Type-G.
+                 15  RTFCE110-I-Operation-Type-I     Pic  x(01).
+                 15  RTFCE110-I-Operation-Type-O     Pic  x(01).
+                 15  RTFCE110-I-Operation-Type-X.
+                   20  RTFCE110-I-Operation-Type-D   Pic  x(20).
+      *****************************************************************
+      *     Item   : 400
+      *     Descr  : Type
+      *
+           05  RTFCE110-I-Type-G.
+               10  RTFCE110-I-Type-A                 Pic  9(04) Comp.
+                 88  RTFCE110-I-Type-M               Value  50.
+               10  RTFCE110-I-Type-T                 Occurs 50 Times.
+                 15  RTFCE110-I-Type-I               Pic  x(01).
+                 15  RTFCE110-I-Type-O               Pic  x(01).
+                 15  RTFCE110-I-Type-X.
+                   20  RTFCE110-I-Type-D             Pic  x(20).
+      *****************************************************************
+      *     Item   : 406
+      *     Descr  : Kundetype
+      *
+           05  RTFCE110-I-Custm-Type-G.
+               10  RTFCE110-I-Custm-Type-A           Pic  9(04) Comp.
+                 88  RTFCE110-I-Custm-Type-M         Value  50.
+               10  RTFCE110-I-Custm-Type-T           Occurs 50 Times.
+                 15  RTFCE110-I-Custm-Type-I         Pic  x(01).
+                 15  RTFCE110-I-Custm-Type-O         Pic  x(01).
+                 15  RTFCE110-I-Custm-Type-X.
+                   20  RTFCE110-I-Custm-Type-D       Pic  x(1).
+      *****************************************************************
+      *     Item   : 420
+      *     Descr  : Valgt
+      *
+           05  RTFCE110-I-Selected-G.
+               10  RTFCE110-I-Selected-A             Pic  9(04) Comp.
+                 88  RTFCE110-I-Selected-M           Value  50.
+               10  RTFCE110-I-Selected-T             Occurs 50 Times.
+                 15  RTFCE110-I-Selected-I           Pic  x(01).
+                 15  RTFCE110-I-Selected-O           Pic  x(01).
+                 15  RTFCE110-I-Selected-X.
+                   20  RTFCE110-I-Selected-D         Pic  x(1).
+      *****************************************************************
+      *     Item   : 460
+      *     Descr  : Kunde-Id
+      *
+           05  RTFCE110-I-Customer-Id-G.
+               10  RTFCE110-I-Customer-Id-A          Pic  9(04) Comp.
+                 88  RTFCE110-I-Customer-Id-M        Value  50.
+               10  RTFCE110-I-Customer-Id-T          Occurs 50 Times.
+                 15  RTFCE110-I-Customer-Id-I        Pic  x(01).
+                 15  RTFCE110-I-Customer-Id-O        Pic  x(01).
+                 15  RTFCE110-I-Customer-Id-X.
+                   20  RTFCE110-I-Customer-Id-D      Pic  9(11).
+      *****************************************************************
+      *     Item   : 461
+      *     Descr  : Referanse
+      *
+           05  RTFCE110-I-Reference-G.
+               10  RTFCE110-I-Reference-A            Pic  9(04) Comp.
+                 88  RTFCE110-I-Reference-M          Value  50.
+               10  RTFCE110-I-Reference-T            Occurs 50 Times.
+                 15  RTFCE110-I-Reference-I          Pic  x(01).
+                 15  RTFCE110-I-Reference-O          Pic  x(01).
+                 15  RTFCE110-I-Reference-X.
+                   20  RTFCE110-I-Reference-D        Pic  x(16).
+      *****************************************************************
+      *     Item   : 462
+      *     Descr  : Kontonr-1
+      *
+           05  RTFCE110-I-Account-No-1-G.
+               10  RTFCE110-I-Account-No-1-A         Pic  9(04) Comp.
+                 88  RTFCE110-I-Account-No-1-M       Value  50.
+               10  RTFCE110-I-Account-No-1-T         Occurs 50 Times.
+                 15  RTFCE110-I-Account-No-1-I       Pic  x(01).
+                 15  RTFCE110-I-Account-No-1-O       Pic  x(01).
+                 15  RTFCE110-I-Account-No-1-X.
+                   20  RTFCE110-I-Account-No-1-D     Pic  x(35).
+      *****************************************************************
+      *     Item   : 463
+      *     Descr  : Kontonr-2
+      *
+           05  RTFCE110-I-Account-No-2-G.
+               10  RTFCE110-I-Account-No-2-A         Pic  9(04) Comp.
+                 88  RTFCE110-I-Account-No-2-M       Value  50.
+               10  RTFCE110-I-Account-No-2-T         Occurs 50 Times.
+                 15  RTFCE110-I-Account-No-2-I       Pic  x(01).
+                 15  RTFCE110-I-Account-No-2-O       Pic  x(01).
+                 15  RTFCE110-I-Account-No-2-X.
+                   20  RTFCE110-I-Account-No-2-D     Pic  x(35).
+      *****************************************************************
+      *     Item   : 464
+      *     Descr  : Kundenr
+      *
+           05  RTFCE110-I-Customer-No-G.
+               10  RTFCE110-I-Customer-No-A          Pic  9(04) Comp.
+                 88  RTFCE110-I-Customer-No-M        Value  50.
+               10  RTFCE110-I-Customer-No-T          Occurs 50 Times.
+                 15  RTFCE110-I-Customer-No-I        Pic  x(01).
+                 15  RTFCE110-I-Customer-No-O        Pic  x(01).
+                 15  RTFCE110-I-Customer-No-X.
+                   20  RTFCE110-I-Customer-No-D      Pic  9(11).
+      *****************************************************************
+      *     Item   : 466
+      *     Descr  : Fornavn
+      *
+           05  RTFCE110-I-First-Name-G.
+               10  RTFCE110-I-First-Name-A           Pic  9(04) Comp.
+                 88  RTFCE110-I-First-Name-M         Value  50.
+               10  RTFCE110-I-First-Name-T           Occurs 50 Times.
+                 15  RTFCE110-I-First-Name-I         Pic  x(01).
+                 15  RTFCE110-I-First-Name-O         Pic  x(01).
+                 15  RTFCE110-I-First-Name-X.
+                   20  RTFCE110-I-First-Name-D       Pic  x(35).
+      *****************************************************************
+      *     Item   : 467
+      *     Descr  : Etternavn/Firmanavn
+      *
+           05  RTFCE110-I-Surname-G.
+               10  RTFCE110-I-Surname-A              Pic  9(04) Comp.
+                 88  RTFCE110-I-Surname-M            Value  50.
+               10  RTFCE110-I-Surname-T              Occurs 50 Times.
+                 15  RTFCE110-I-Surname-I            Pic  x(01).
+                 15  RTFCE110-I-Surname-O            Pic  x(01).
+                 15  RTFCE110-I-Surname-X.
+                   20  RTFCE110-I-Surname-D          Pic  x(35).
+      *****************************************************************
+      *     Item   : 468
+      *     Descr  : Adresse-linje-1
+      *
+           05  RTFCE110-I-Address-Line-1-G.
+               10  RTFCE110-I-Address-Line-1-A       Pic  9(04) Comp.
+                 88  RTFCE110-I-Address-Line-1-M     Value  50.
+               10  RTFCE110-I-Address-Line-1-T       Occurs 50 Times.
+                 15  RTFCE110-I-Address-Line-1-I     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-1-O     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-1-X.
+                   20  RTFCE110-I-Address-Line-1-D   Pic  x(35).
+      *****************************************************************
+      *     Item   : 469
+      *     Descr  : Adresse-Linje-2
+      *
+           05  RTFCE110-I-Address-Line-2-G.
+               10  RTFCE110-I-Address-Line-2-A       Pic  9(04) Comp.
+                 88  RTFCE110-I-Address-Line-2-M     Value  50.
+               10  RTFCE110-I-Address-Line-2-T       Occurs 50 Times.
+                 15  RTFCE110-I-Address-Line-2-I     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-2-O     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-2-X.
+                   20  RTFCE110-I-Address-Line-2-D   Pic  x(35).
+      *****************************************************************
+      *     Item   : 470
+      *     Descr  : Adresse-Linje-3
+      *
+           05  RTFCE110-I-Address-Line-3-G.
+               10  RTFCE110-I-Address-Line-3-A       Pic  9(04) Comp.
+                 88  RTFCE110-I-Address-Line-3-M     Value  50.
+               10  RTFCE110-I-Address-Line-3-T       Occurs 50 Times.
+                 15  RTFCE110-I-Address-Line-3-I     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-3-O     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-3-X.
+                   20  RTFCE110-I-Address-Line-3-D   Pic  x(35).
+      *****************************************************************
+      *     Item   : 472
+      *     Descr  : BIC-SWIFT
+      *
+           05  RTFCE110-I-BIC-SWIFT-G.
+               10  RTFCE110-I-BIC-SWIFT-A            Pic  9(04) Comp.
+                 88  RTFCE110-I-BIC-SWIFT-M          Value  50.
+               10  RTFCE110-I-BIC-SWIFT-T            Occurs 50 Times.
+                 15  RTFCE110-I-BIC-SWIFT-I          Pic  x(01).
+                 15  RTFCE110-I-BIC-SWIFT-O          Pic  x(01).
+                 15  RTFCE110-I-BIC-SWIFT-X.
+                   20  RTFCE110-I-BIC-SWIFT-D        Pic  x(12).
+      *****************************************************************
+      *     Item   : 486
+      *     Descr  : Adresse-Linje-4
+      *
+           05  RTFCE110-I-Address-Line-4-G.
+               10  RTFCE110-I-Address-Line-4-A       Pic  9(04) Comp.
+                 88  RTFCE110-I-Address-Line-4-M     Value  50.
+               10  RTFCE110-I-Address-Line-4-T       Occurs 50 Times.
+                 15  RTFCE110-I-Address-Line-4-I     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-4-O     Pic  x(01).
+                 15  RTFCE110-I-Address-Line-4-X.
+                   20  RTFCE110-I-Address-Line-4-D   Pic  x(35).
+      *****************************************************************
+      *     Item   : 730
+      *     Descr  : Lank-Kode
+      *
+           05  RTFCE110-I-Country-Code-G.
+               10  RTFCE110-I-Country-Code-A         Pic  9(04) Comp.
+                 88  RTFCE110-I-Country-Code-M       Value  50.
+               10  RTFCE110-I-Country-Code-T         Occurs 50 Times.
+                 15  RTFCE110-I-Country-Code-I       Pic  x(01).
+                 15  RTFCE110-I-Country-Code-O       Pic  x(01).
+                 15  RTFCE110-I-Country-Code-X.
+                   20  RTFCE110-I-Country-Code-D     Pic  x(2).
+      *****************************************************************
+      *     Item   : 731
+      *     Descr  : Geo-Kode
+      *
+           05  RTFCE110-I-Geo-Code-G.
+               10  RTFCE110-I-Geo-Code-A             Pic  9(04) Comp.
+                 88  RTFCE110-I-Geo-Code-M           Value  50.
+               10  RTFCE110-I-Geo-Code-T             Occurs 50 Times.
+                 15  RTFCE110-I-Geo-Code-I           Pic  x(01).
+                 15  RTFCE110-I-Geo-Code-O           Pic  x(01).
+                 15  RTFCE110-I-Geo-Code-X.
+                   20  RTFCE110-I-Geo-Code-D         Pic  9(5).
+      *****************************************************************
+      *     Item   : 733
+      *     Descr  : Sektor-Kode
+      *
+           05  RTFCE110-I-Sector-Code-G.
+               10  RTFCE110-I-Sector-Code-A          Pic  9(04) Comp.
+                 88  RTFCE110-I-Sector-Code-M        Value  50.
+               10  RTFCE110-I-Sector-Code-T          Occurs 50 Times.
+                 15  RTFCE110-I-Sector-Code-I        Pic  x(01).
+                 15  RTFCE110-I-Sector-Code-O        Pic  x(01).
+                 15  RTFCE110-I-Sector-Code-X.
+                   20  RTFCE110-I-Sector-Code-D      Pic  9(4).
+      *****************************************************************
+      *     Item   : 734
+      *     Descr  : Kunde-Type
+      *
+           05  RTFCE110-I-Customer-Type-G.
+               10  RTFCE110-I-Customer-Type-A        Pic  9(04) Comp.
+                 88  RTFCE110-I-Customer-Type-M      Value  50.
+               10  RTFCE110-I-Customer-Type-T        Occurs 50 Times.
+                 15  RTFCE110-I-Customer-Type-I      Pic  x(01).
+                 15  RTFCE110-I-Customer-Type-O      Pic  x(01).
+                 15  RTFCE110-I-Customer-Type-X.
+                   20  RTFCE110-I-Customer-Type-D    Pic  x(1).

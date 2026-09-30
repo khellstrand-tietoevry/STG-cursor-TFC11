@@ -1,0 +1,185 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD International Services                                       00030000
+      *                                                                 00040000
+      * Copy-area R116IBI0.                                             00050001
+      *                                                                 00060000
+      * Interface for all database access on table VA_BIC.              00070001
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified.               00100004
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary call may look like this:                            00210000
+      *                                                                 00220000
+      *    Initialize                          R116IBI0-BIC             00230001
+      *    Set   R116IBI0-Version        To    True                     00240001
+      *    Set   R116IBI0-In-Select      To    True                     00250001
+      *                                                                 00251002
+      *    Move  &Bic-Bank               To    R116IBI0-In-Bank         00252002
+      *    Move  &Bic-Country            To    R116IBI0-In-Country      00253002
+      *    Move  &Bic-Location           To    R116IBI0-In-Location     00254002
+      *    Move  &Bic-Location           To    R116IBI0-In-Location     00254113
+      *                                                                 00254213
+      *                                                                 00256002
+      *    Call  'F116IBI0'              Using R116IBI0-BIC             00330001
+      *                                        R7919999-Error           00340000
+      *    End-Call                                                     00350000
+      *                                                                 00360000
+      *    Evaluate True                                                00370000
+      *      When R7919999-Retur-Abend                                  00380000
+      *        Move  '&&&&'              To    R7919999-Paragraf        00390000
+      *        Perform Z900-Abend                                       00400000
+      *                                                                 00410000
+      *      When R7919999-Retur-Feil                                   00420000
+      *        ...not found...                                          00430000
+      *                                                                 00440000
+      *      When R7919999-Retur-OK                                     00450000
+      *        ...found...                                              00460000
+      *                                                                 00470000
+      *    End-Evaluate                                                 00480000
+      *                                                                 00490000
+      *################################################################*00500000
+      * Date ! Si! Change description                            ! 3A ! 00510000
+      *------+---+-----------------------------------------------+----+ 00520000
+      *040101!NDL! New copy area                                 !LT12! 00530000
+      *################################################################*00540000
+      *                                                                 00550000
+         03  R116IBI0-BIC.                                              00560001
+      *                                                                 00570000
+           05  R116IBI0-Version-No              Pic  X(08).             00580001
+             88  R116IBI0-Version                    Value '20010104'.  00590001
+      *                                                                 00600000
+      *----------------------------------------------------------------*00610000
+      *                                                                 00620000
+           05  R116IBI0-Qualification.                                  00630001
+      *                                                                 00640000
+             10  R116IBI0-In-Action             Pic  X(16).             00650001
+               88  R116IBI0-In-Get-1st               Value 'GET-1ST'.   00660001
+               88  R116IBI0-In-Get-Next              Value 'GET-NEXT'.  00670001
+               88  R116IBI0-In-Insert                Value 'INSERT'.    00680001
+               88  R116IBI0-In-Update                Value 'UPDATE'.    00690001
+               88  R116IBI0-In-Delete                Value 'DELETE'.    00700001
+               88  R116IBI0-In-Select                Value 'SELECT'.    00830001
+      *                                                                 00850000
+      * There are several key-fields, which may be used differently     00860000
+      * depending on the need.                                          00870000
+      *                                                                 00880000
+      * For Insert, use the Data area for all fields.                   00891002
+      *                                                                 00892002
+      * For Select, Update and Delete, use:                             00893002
+      *     - Bic-Bank                                                  00900002
+      *     - Bic-Country                                               00910002
+      *     - Bic-Location                                              00920002
+      *     - Bic-Branch                                                00930002
+      *                                                                 00970000
+      * For cursor (Get-1st / Get-Next), use:                           00980000
+      *     - Optional: Bic-Bank  (e.g. 'HAND')                         00990009
+      *     - Optional: Bic-Country    (e.g. 'NO')                      01000009
+      *     - Optional: Bic-Location with mask                          01010002
+      *     - Optional: Bic-Branch   with mask                          01020002
+      *                                                                 01030000
+             10  R116IBI0-In-Key.                                       01040001
+               15  R116IBI0-In-Bic-Code.                                01041012
+                 20  R116IBI0-In-Bank           pic X(4).               01050002
+                 20  R116IBI0-In-Country        pic X(2).               01060002
+                 20  R116IBI0-In-Location       pic X(2).               01061002
+                 20  R116IBI0-In-Branch         pic X(3).               01062002
+      *                                                                 01070000
+      * When performing a Get-1st-call one may ask for the total        01140000
+      * number of rows complying with the qualification.                01150000
+      *                                                                 01160000
+             10  R116IBI0-In-Code-Count         Pic  X(10).             01170001
+               88  R116IBI0-In-CC-Count              Value 'COUNT'.     01180001
+      *                                                                 01190000
+      *----------------------------------------------------------------*01200000
+      *                                                                 01210000
+           05  R116IBI0-Data.                                           01220001
+      *                                                                 01230000
+             10  R116IBI0-Key.                                          01240001
+               15  R116IBI0-BIC-CODE.                                   01250007
+                 20  R116IBI0-Bank              pic X(4).               01251003
+                 20  R116IBI0-Country           pic X(2).               01252003
+                 20  R116IBI0-Location          pic X(2).               01253003
+                 20  R116IBI0-Branch            pic X(3).               01254003
+      *                                                                 01330000
+             10  R116IBI0-Tag-ID                Pic  X(02).             01360003
+             10  R116IBI0-Mod-Flag              Pic  X(01).             01370003
+             10  R116IBI0-Instit-Name-1         pic  x(35).             01380005
+             10  R116IBI0-Instit-Name-2         pic  X(35).             01390005
+             10  R116IBI0-Instit-Name-3         pic  X(35).             01400005
+             10  R116IBI0-Branch-Info-1         pic  X(35).             01410005
+             10  R116IBI0-Branch-Info-2         pic  X(35).             01420005
+             10  R116IBI0-City-Heading          pic  X(35).             01430005
+             10  R116IBI0-Subtype-Id            pic  X(04).             01440005
+             10  R116IBI0-Val-Add-Serv          pic  X(60).             01441005
+             10  R116IBI0-Extra-Info            pic  X(35).             01442005
+             10  R116IBI0-Phys-Addr-1           pic  X(35).             01443005
+             10  R116IBI0-Phys-Addr-2           pic  X(35).             01444005
+             10  R116IBI0-Phys-Addr-3           pic  X(35).             01445005
+             10  R116IBI0-Phys-Addr-4           pic  X(35).             01446005
+             10  R116IBI0-Zip-Code              pic  X(15).             01447005
+             10  R116IBI0-Location-1            pic  X(20).             01448005
+             10  R116IBI0-Location-2            pic  X(35).             01449005
+             10  R116IBI0-Location-3            pic  X(35).             01449105
+             10  R116IBI0-Countryname-1         Pic  X(35).             01449305
+             10  R116IBI0-Countryname-2         Pic  X(35).             01449405
+             10  R116IBI0-Pob-Number            Pic  X(35).             01449505
+             10  R116IBI0-Pob-Zip-Code          Pic  X(15).             01449605
+             10  R116IBI0-Pob-Locatn-1          Pic  X(20).             01449705
+             10  R116IBI0-Pob-Locatn-2          Pic  X(35).             01449805
+             10  R116IBI0-Pob-Locatn-3          Pic  X(35).             01449905
+             10  R116IBI0-Pob-Country-1         Pic  X(35).             01450005
+             10  R116IBI0-Pob-Country-2         Pic  X(35).             01450105
+             10  R116IBI0-Source-Info           Pic  X(2).              01450205
+             10  R116IBI0-Special-Code          Pic  X(6).              01450305
+             10  R116IBI0-Update-Date           Pic  X(6).              01450405
+             10  R116IBI0-Origin-Of-Key         Pic  X(4).              01450505
+             10  R116IBI0-Bic-Pluss-Key         Pic  X(8).              01450605
+             10  R116IBI0-Check-Digit           Pic  S9(4) comp.        01450705
+             10  R116IBI0-Chips-Uid             Pic  S9(9) comp.        01450805
+             10  R116IBI0-National-Id           Pic  X(15).             01450905
+             10  R116IBI0-Activ-Date            Pic  X(6).              01451005
+             10  R116IBI0-Deactiv-Date          Pic  X(6).              01451105
+             10  R116IBI0-Undo-Merge-Ch         Pic  X(8).              01451205
+             10  R116IBI0-Undo-Merge-Ni         Pic  X(8).              01451405
+             10  R116IBI0-New-Bicpl-Key         Pic  X(8).              01451505
+             10  R116IBI0-Commitm-Flag          Pic  S9(4)  comp.       01451605
+             10  R116IBI0-Commit-Instit         Pic  S9(4)  comp.       01451705
+             10  R116IBI0-User-Field            Pic  X(128).            01451805
+             10  R116IBI0-XBRD-Info1-CC         Pic  X(2).              01451905
+             10  R116IBI0-XBRD-Info1-ID         Pic  X(15).             01452005
+             10  R116IBI0-XBRD-Info2-CC         Pic  X(2).              01453005
+             10  R116IBI0-XBRD-Info2-ID         Pic  X(15).             01454005
+             10  R116IBI0-XBRD-Info3-CC         Pic  X(2).              01455005
+             10  R116IBI0-XBRD-Info3-ID         Pic  X(15).             01456005
+             10  R116IBI0-XBRD-Info4-CC         Pic  X(2).              01457005
+             10  R116IBI0-XBRD-Info4-ID         Pic  X(15).             01458005
+             10  R116IBI0-XBRD-IWD1-CC          Pic  X(2).              01459003
+             10  R116IBI0-XBRD-IWD1-ID          Pic  X(15).             01459103
+             10  R116IBI0-XBRD-IWD1-ACD         Pic  X(6).              01459203
+             10  R116IBI0-XBRD-IWD1-DAD         Pic  X(6).              01459303
+             10  R116IBI0-XBRD-IWD2-CC          Pic  X(2).              01459403
+             10  R116IBI0-XBRD-IWD2-ID          Pic  X(15).             01459503
+             10  R116IBI0-XBRD-IWD2-ACD         Pic  X(6).              01459603
+             10  R116IBI0-XBRD-IWD2-DAD         Pic  X(6).              01459703
+      *                                                                 01460303
+      * The following accumulators are only relevant when performing    01461003
+      * Get-1st or Get-Next.                                            01470000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01480000
+      * each Get-Next.                                                  01490000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01500000
+      * In-CC-Count is set. The field will tell you how many rows       01510000
+      * that complies with your qualification.                          01520000
+      *                                                                 01530000
+             10  R116IBI0-Out-Accumulators.                             01540001
+               15  R116IBI0-Out-Row-No          Pic S9(11)       Comp-3.01550001
+               15  R116IBI0-Out-Total-Rows      Pic S9(11)       Comp-3.01560001
+      *                                                                 01570000

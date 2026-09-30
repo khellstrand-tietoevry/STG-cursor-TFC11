@@ -1,0 +1,240 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115IRP0.                                             00050000
+      *                                                                 00060000
+      * Interface for all database access on table TF_Related_Party.    00070000
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified with           00100000
+      * from- and to- values.                                           00110000
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary Select call may look like this:                     00210003
+      *                                                                 00220003
+      *    Initialize                          R115IRP0-Related-Party   00230003
+      *    Set   R115IRP0-Version        To    True                     00240003
+      *    Set   R115IRP0-In-Select      To    True                     00250003
+      *                                                                 00260003
+      * One of these:                                                   00270012
+      * 1) Set   R115IRP0-In-Actual      To    True                     00280012
+      * 2) Set   R115IRP0-In-Work        To    True                     00290012
+      *                                                                 00300012
+      * One of these:                                                   00310003
+      * 1) Move  &fin-inst-id            To    R115IRP0-In-Fin-Inst-ID  00320003
+      * 2) Move  &fin-inst-no            To    R115IRP0-In-Fin-Inst-No  00330003
+      *                                                                 00340003
+      *    Move  &contract-type          To    R115IRP0-In-Contract-Type00350003
+      *    Move  &contract-no            To    R115IRP0-In-Contract-No  00360003
+      *    Move  &role-type              To    R115IRP0-In-Role-Type    00370007
+      *                                                                 00380003
+      * To specify relation to Main_Contract or Part_Amount:            00390007
+      * One of these: (3rd only for cursors)                            00400007
+      * 1) Set   R115IRP0-In-Rel-MC      To    True                     00410007
+      * 2) Set   R115IRP0-In-Rel-PA      To    True                     00420007
+      * 3) Set   R115IRP0-In-Rel-All     To    True                     00430007
+      *                                                                 00440007
+      * If you want Related Party for a Part_Amount, fill in these:     00450007
+      *    Move  &currency (ISO 4217)    To    R115IRP0-In-CA-Currency  00460007
+      *    Move  &part-amount seq.no     To    R115IRP0-In-PA-Seq-No    00470007
+      *                                                                 00480007
+      *    Call  'F115IRP0'              Using R115IRP0-Related-Party   00490003
+      *                                        R7919999-Error-Area      00500003
+      *    End-Call                                                     00510003
+      *                                                                 00520003
+      *    Evaluate True                                                00530003
+      *      When R7919999-Return-Abend                                 00540003
+      *        Move  '&&&&'              To    R7919999-Paragraph       00550003
+      *        Perform Z900-Abend                                       00560003
+      *                                                                 00570003
+      *      When R7919999-Return-Error                                 00580003
+      *        ...not found...                                          00590003
+      *                                                                 00600003
+      *      When R7919999-Return-OK                                    00610003
+      *        ...found...                                              00620003
+      *                                                                 00630003
+      *    End-Evaluate                                                 00640003
+      *                                                                 00650003
+      *################################################################*00660000
+      * Date ! Si! Change description                            ! 3A ! 00670000
+      *------+---+-----------------------------------------------+----+ 00680000
+      *130701!NDL! Deleted TF_Bic.                               !LR12! 00690026
+      *050101!NDL! Added TF_Bic.                                 !LR12! 00690126
+      *190600!HLR! Changed cursor-qual. on FK_TFMC_Contr_Type    !LO18! 00691021
+      *      !   ! from "Like" to "=".                           !    ! 00700019
+      *      !   ! Removed -In-From-Contr-No (kept as redef.).   !    ! 00710020
+      *      !   ! Removed -In-To-Contr-No.                      !    ! 00720020
+      *100200!HLR! Added In-Customer-No/-ID.                     !LG10! 00730018
+      *      !   ! Used for optional qualification on Get-1st/Next.   ! 00740018
+      *150699!HLR! Added two fields: FK-KF**-Lnr-Swift           !LG10! 00750018
+      *290499!HLR! Added relation to TF_Part_Amount              !LG10! 00760017
+      *      !   ! Removed Work_Status                           !    ! 00770007
+      *100399!HLR! New copy area                                 !LG10! 00780007
+      *################################################################*00790000
+      *                                                                 00800000
+         03  R115IRP0-Related-Party.                                    00810000
+      *                                                                 00820000
+           05  R115IRP0-Version-No              Pic  X(08).             00830000
+             88  R115IRP0-Version                    Value '20000619'.  00840020
+      *                                                                 00850000
+      *----------------------------------------------------------------*00860000
+      *                                                                 00870000
+           05  R115IRP0-Qualification.                                  00880000
+      *                                                                 00890000
+             10  R115IRP0-In-Action             Pic  X(16).             00900000
+               88  R115IRP0-In-Get-1st               Value 'GET-1ST'.   00910000
+               88  R115IRP0-In-Get-Next              Value 'GET-NEXT'.  00920000
+               88  R115IRP0-In-Select                Value 'SELECT'.    00930000
+               88  R115IRP0-In-Insert                Value 'INSERT'.    00940000
+               88  R115IRP0-In-Update                Value 'UPDATE'.    00950000
+               88  R115IRP0-In-Delete                Value 'DELETE'.    00960000
+      *                                                                 00970000
+      * There are several key-fields, which may be used differently     00980000
+      * depending on the need.                                          00990000
+      *                                                                 01000000
+      * In-Table must be set whatever the desired action is.            01010012
+      *                                                                 01020012
+      * For Insert, use the Data area for all fields.                   01030009
+      *                                                                 01040009
+      * For Select, Update and Delete, use:                             01050009
+      *     - Fin-Inst-No or Fin-Inst-ID                                01060000
+      *     - Contract-Type                                             01070000
+      *     - Contract-No                                               01080000
+      *     - Relation (Rel-MC or Rel-PA)                               01090007
+      *     - If Rel-PA is specified:                                   01100007
+      *       - Currency                                                01110007
+      *       - Part Amount Sequence Number                             01120007
+      *     - Role-Type                                                 01130007
+      *                                                                 01140000
+      * For cursor (Get-1st / Get-Next), use:                           01150000
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      01160000
+      *     - Optional: Contract-Type                                   01170000
+      *     - Optional: Contract-No                                     01180020
+      *     - If Rel-PA is specified:                                   01190007
+      *       - Optional: Currency and Part Amount Seq.no               01200007
+      *     - Optional: Role-Type                                       01210007
+      *     - Optional: Customer-No or Customer-ID                      01220018
+      *                                                                 01230000
+             10  R115IRP0-In-Key.                                       01240000
+      *                                                                 01250000
+               15  R115IRP0-In-Table-Version    Pic  X(16).             01260013
+                 88  R115IRP0-In-Actual              Value 'ACTUAL'.    01270012
+                 88  R115IRP0-In-Work                Value 'WORK'.      01280012
+      *                                                                 01290012
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01300000
+               15  R115IRP0-In-Fin-Inst.                                01310000
+                 20  R115IRP0-In-Fin-Inst-No    Pic  X(18).             01320002
+                 20  R115IRP0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01330000
+      *                                                                 01340000
+      *        Contract-Type and -No is mandatory for                   01350000
+      *        Select/Update/Delete.                                    01360009
+               15  R115IRP0-In-Contract.                                01370000
+                 20  R115IRP0-In-Contract-Type  Pic  X(03).             01380000
+                 20  R115IRP0-In-Contract-No    Pic S9(07)       Comp-3.01390000
+      *                                                                 01400000
+      *          Temporary, as this field is still in use.              01410020
+                 20  R115IRP0-In-From-Contr-No  Redefines               01420020
+                                                R115IRP0-In-Contract-No 01430020
+                                                Pic S9(07)       Comp-3.01440020
+      *                                                                 01450020
+      *        You need to specify wether you want Related_Party        01460008
+      *        related to Main_Contract, Part_Amount or any.            01470007
+      *        Rel-MC or Rel-PA must be specified for                   01480007
+      *        Select/Update/Delete.                                    01490009
+               15  R115IRP0-In-Relation         Pic  X(02).             01500007
+                 88  R115IRP0-In-Rel-MC              Value 'MC'.        01510007
+                 88  R115IRP0-In-Rel-PA              Value 'PA'.        01520007
+                 88  R115IRP0-In-Rel-Any             Value '* ', '  '.  01530007
+      *                                                                 01540007
+      *        These fields are only relevant if Rel-PA is specified.   01550007
+      *        They are both mandatory for Select/Update/Delete.        01560009
+               15  R115IRP0-In-Part-Amount.                             01570007
+                 20  R115IRP0-In-CA-Currency    Pic  X(03).             01580007
+                 20  R115IRP0-In-PA-Seq-No      Pic S9(04)       Comp.  01590007
+      *                                                                 01600007
+      *        Role is mandatory for Select/Update/Delete.              01610009
+               15  R115IRP0-In-Role.                                    01620003
+                 20  R115IRP0-In-Role-Type      Pic  X(05).             01630003
+      *                                                                 01640000
+      *        Customer is optional for Get-1st/-Next, and not in use   01650018
+      *        for other actions.                                       01660018
+      *        It is optional wether you use Customer-No or Customer-ID.01670018
+               15  R115IRP0-In-Customer.                                01680018
+                 20  R115IRP0-In-Customer-No    Pic S9(11)       Comp-3.01690018
+                 20  R115IRP0-In-Customer-ID    Pic S9(11)       Comp-3.01700018
+      *                                                                 01701024
+      *                                                                 01710018
+      * When performing a Get-1st-call one may ask for the total        01720000
+      * number of rows complying with the qualification.                01730000
+      *                                                                 01740000
+             10  R115IRP0-In-Code-Count         Pic  X(10).             01750000
+               88  R115IRP0-In-CC-Count              Value 'COUNT'.     01760016
+      *                                                                 01770000
+      *----------------------------------------------------------------*01780000
+      *                                                                 01790000
+           05  R115IRP0-Data.                                           01800000
+      *                                                                 01810000
+             10  R115IRP0-Key.                                          01820000
+               15  R115IRP0-Fin-Inst-ID         Pic S9(18)       Comp-3.01830000
+               15  R115IRP0-Contract-ID.                                01840000
+                 20  R115IRP0-Contract-Type     Pic  X(03).             01850000
+                 20  R115IRP0-Contract-No       Pic S9(07)       Comp-3.01860000
+      *                                                                 01870007
+      *      These fields are only relevant if Rel-PA is specified.     01880007
+               15  R115IRP0-Part-Amount.                                01890007
+                 20  R115IRP0-CA-Currency       Pic  X(03).             01900007
+                 20  R115IRP0-PA-Seq-No         Pic S9(04)       Comp.  01910007
+      *                                                                 01920007
+               15  R115IRP0-Role-Type           Pic  X(05).             01930007
+      *                                                                 01940000
+      *      This code defines wether the Related_Party is related to   01950008
+      *      the main contract or a part amount.                        01960007
+             10  R115IRP0-Relation              Pic  X(02).             01970007
+               88  R115IRP0-Rel-MC                   Value 'MC'.        01980007
+               88  R115IRP0-Rel-PA                   Value 'PA'.        01990007
+      *                                                                 02000007
+      *      If the related party is located in FD Customer,            02010004
+      *      the Customer-ID will be populated.                         02020006
+      *      The Customer-No will be populated regardless of where      02030006
+      *      the customer is populated.                                 02040006
+      *      On insert and update, you may use the Customer-ID if known,02050006
+      *      or you may use the Customer-No.                            02060006
+             10  R115IRP0-Customer.                                     02070004
+               15  R115IRP0-Customer-ID         Pic S9(11)       Comp-3.02080005
+               15  R115IRP0-Customer-No         Pic S9(11)       Comp-3.02090005
+      *                                                                 02100004
+             10  R115IRP0-KFRO-Seq-No           Pic S9(04)       Comp.  02110010
+      *                                                                 02120010
+             10  R115IRP0-Account               Pic  X(35).             02130001
+             10  R115IRP0-NOR-Account     Redefines R115IRP0-Account    02140014
+                                                Pic  9(11).             02150014
+      *                                                                 02160014
+             10  R115IRP0-Account-2             Pic  X(35).             02170007
+             10  R115IRP0-NOR-Account-2   Redefines R115IRP0-Account-2  02180014
+                                                Pic  9(11).             02190014
+      *                                                                 02200014
+             10  R115IRP0-Reference             Pic  X(16).             02210001
+      *                                                                 02260000
+             10  Filler.                                                02270001
+               15  R115IRP0-Fin-Inst-No         Pic  X(18).             02280002
+      *                                                                 02290001
+      * The following accumulators are only relevant when performing    02300000
+      * Get-1st or Get-Next.                                            02310000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   02320000
+      * each Get-Next.                                                  02330000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           02340000
+      * In-CC-Count is set. The field will tell you how many rows       02350000
+      * that complies with your qualification.                          02360000
+      *                                                                 02370000
+             10  R115IRP0-Out-Accumulators.                             02380000
+               15  R115IRP0-Out-Row-No          Pic S9(11)       Comp-3.02390000
+               15  R115IRP0-Out-Total-Rows      Pic S9(11)       Comp-3.02400000
+      *                                                                 02410000

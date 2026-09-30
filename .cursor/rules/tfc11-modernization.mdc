@@ -1,0 +1,21 @@
+---
+description: TFC11 code-modernization orchestration and intent
+globs:
+  - analysis/TFC11/**
+  - legacy/**
+  - modernized/**
+alwaysApply: true
+---
+
+# TFC11 modernization (Cursor + code-modernization plugin)
+
+- **System label:** `TFC11`. Artifacts: `analysis/TFC11/`. Legacy: `legacy/STG/TFC11/` (also `legacy/TFC11/` symlink).
+- **Intent:** Customer-create STG flow (`FTFCH110` → `FTFCK110` → `FTFCL110`). Default track: **transform** to **Java 21 / Spring Boot** with exact legacy behavior including quirks.
+- **Orchestration:** At most **5** Task subagents in parallel unless the user explicitly approves more.
+- **Legacy COBOL is frozen:** Do **not** edit `legacy/**`. Write Java under `modernized/` and docs under `analysis/TFC11/`.
+- **Repository boundary:** Use only this repo; import missing COBOL into `legacy/` instead of reading external checkouts.
+- **Corpus gaps:** `legacy/STG/TFC11/corpus-manifest.json` may list `unresolved_copybooks` for COPY members outside the import-locked closure — resolve by importing copybooks into `legacy/STG/TFC11/copybooks/` and regenerating the manifest, not by referencing external trees at runtime.
+
+When the user starts a modernization step, honor:
+
+> Cap parallel Task subagents at 5 for this project.

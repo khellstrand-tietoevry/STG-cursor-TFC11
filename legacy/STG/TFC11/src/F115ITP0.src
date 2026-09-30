@@ -1,0 +1,1494 @@
+       Identification Division.                                         00010000
+       Program-ID. F115ITP0.                                            00020000
+       Author.  Nina Dahl Larsen.                                       00030000
+      *################################################################*00040000
+      *                                                                 00050000
+      * FD Trade Finance                                                00060000
+      *                                                                 00070000
+      * Interface for all database access on table TF_Tast_Part.        00080000
+      *                                                                 00090000
+      * The interface kan read one spesific occurence,                  00100000
+      * or several occurences, fully or partly qualified with           00110000
+      * from- and to- values.                                           00120000
+      *                                                                 00130000
+      * When reading several occurences, one must always start with     00140000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00150000
+      *                                                                 00160000
+      * NB!  There are several key-fields, which may be used            00170000
+      *      differently depending on the need.                         00180000
+      *      See seperate description below.                            00190000
+      *                                                                 00200000
+      *                                                                 00210000
+      * An ordinary Select call may look like this:                     00220000
+      *                                                                 00230000
+      *    Initialize                          R115ITP0-Tast-Part       00240000
+      *    Set   R115ITP0-Version        To    True                     00250000
+      *    Set   R115ITP0-In-Select      To    True                     00260000
+      *                                                                 00270001
+      * One of these:                                                   00280001
+      * 1) Set   R115ITP0-In-Actual      To    True                     00290001
+      * 2) Set   R115ITP0-In-Work        To    True                     00300001
+      *                                                                 00310001
+      *    Move  &fin-inst-id            To    R115ITP0-In-Fin-Inst-ID  00320000
+      *    Move  &contract-type          To    R115ITP0-In-Contract-Type00330000
+      *    Move  &contract-no            To    R115ITP0-In-Contract-No  00340000
+      *                                                                 00350000
+      * To specify relation to Main_Contract or Part_Amount:            00360000
+      * One of these: (3rd only for cursors)                            00370000
+      * 1) Set   R115ITP0-In-Rel-MC      To    True                     00380000
+      * 2) Set   R115ITP0-In-Rel-PA      To    True                     00390000
+      * 3) Set   R115ITP0-In-Rel-All     To    True                     00400000
+      *                                                                 00410000
+      * If you want Tast_Part for a Part_Amount, fill in these:         00420000
+      *    Move  &currency (ISO 4217)    To    R115ITP0-In-CA-Currency  00430000
+      *    Move  &part-amount seq.no     To    R115ITP0-In-PA-Seq-No    00440000
+      *                                                                 00450000
+      *    Call  'F115ITP0'              Using R115ITP0-Tast-Part       00460000
+      *                                        R7919999-Error-Area      00470001
+      *    End-Call                                                     00480000
+      *                                                                 00490000
+      *    Evaluate True                                                00500000
+      *      When R7919999-Return-Abend                                 00510001
+      *        Move  '&&&&'              To    R7919999-Paragraph       00520001
+      *        Perform Z900-Abend                                       00530000
+      *                                                                 00540000
+      *      When R7919999-Return-Error                                 00550001
+      *        ...not found...                                          00560000
+      *                                                                 00570000
+      *      When R7919999-Return-OK                                    00580001
+      *        ...found...                                              00590000
+      *                                                                 00600000
+      *    End-Evaluate                                                 00610000
+      *                                                                 00620000
+      *################################################################*00630000
+      * Date ! Si! Change description                            ! 3A ! 00640000
+      *------+---+-----------------------------------------------+----+ 00650000
+      *040399!HLR! New module                                    !LG10! 00660000
+      *################################################################*00670000
+       Environment Division.                                            00680000
+       Configuration Section.                                           00690000
+       Special-Names.                                                   00700000
+           Decimal-Point Is Comma.                                      00710000
+      *                                                                 00720000
+      *################################################################*00730000
+       Data Division.                                                   00740000
+       Working-Storage Section.                                         00750000
+      *                                                                 00760000
+       01  Filler.                                                      00770000
+      *                                                                 00780000
+           05  W-Table-Name              Pic  X(18) Value               00790000
+                                                   'TF_Tast_Part     '. 00800000
+             88  SW-Table-Actual             Value 'TF_Tast_Part     '. 00810001
+             88  SW-Table-Work               Value 'TF_Work_TP        '.00820008
+      *                                                                 00830000
+           05  W-IO-Length               Pic S9(04)              Comp.  00840000
+           05  W-Tally                   Pic S9(05)              Comp.  00850001
+      *                                                                 00860000
+           05  WD-Length                 Pic  Z.ZZ9.                    00870000
+      *                                                                 00880000
+           05  Ind-WS-Put                Pic S9(04)              Comp.  00890000
+           05  Ind-WS                    Pic S9(04)              Comp.  00900000
+           05  W-Max-Occ-WS-Tab          Pic S9(04)              Comp.  00910000
+      *                                                                 00920000
+           05  Filler.                                                  00930000
+               10  WD-Fin-Inst-ID        Pic  zzzzzzzzzzzzzzzzz9.       00940000
+               10  WD-Contract-No        Pic  9999999.                  00950000
+               10  WD-PA-Seq-No          Pic  zzz9.                     00960000
+      *                                                                 00970000
+           05  Filler.                                                  00980000
+               10  W-Fin-Inst-No         Pic  X(18).                    00990001
+               10  W-Fin-Inst-ID         Pic  9(18)              Comp-3.01000000
+      *                                                                 01010000
+           05  W-Input-Action            Pic  X(10).                    01020000
+             88  SW-IA-Initialize                   Value 'INITIALIZE'. 01030000
+      *                                                                 01040000
+      *    This field is needed because of the old interfaces used to   01050001
+      *    access Fin-Inst-ID and Customer ID.                          01060001
+           05  W-Tmp-Konsern-Nr          Pic  9(04).                    01070001
+      *                                                                 01080001
+      *----------------------------------------------------------------*01090000
+      * Counters, used on cursor read, to return row no. and total      01100000
+      * no. of rows.                                                    01110000
+      * Total no. of rows is only returned when -In-Count is set on     01120000
+      * the Get-1st-call.                                               01130000
+      *                                                                 01140000
+           05  WC-Counters.                                             01150000
+               10  WC-Row-No             Pic S9(11)              Comp-3.01160000
+               10  WC-Total-No-Of-Rows   Pic S9(11)              Comp-3.01170000
+      *                                                                 01180000
+      *----------------------------------------------------------------*01190000
+      * Switches used for selecting the correct cursor:                 01200000
+      *                                                                 01210000
+           05  SW-Cursor-Code.                                          01220000
+               10  SW-CC-Fin-Inst        Pic  X(01).                    01230000
+                 88  SW-Use-Fin-Inst                Value 'F'.          01240000
+               10  SW-CC-Contract-Type   Pic  X(01).                    01250000
+                 88  SW-Use-Contract-Type           Value 'T'.          01260000
+               10  SW-CC-Contract-No     Pic  X(01).                    01270000
+                 88  SW-Use-Contract-No             Value 'N'.          01280000
+               10  SW-CC-Part-Amount     Pic  X(01).                    01290001
+                 88  SW-Use-Part-Amount             Value 'P'.          01300001
+               10  SW-CC-Role-Type       Pic  X(01).                    01310001
+                 88  SW-Use-Role-Type               Value 'R'.          01320001
+      *                                                                 01330000
+           05  Filler                    Redefines SW-Cursor-Code       01340000
+                                         Pic  X(05).                    01350001
+             88  SW-Use-Fi-Asc                      Value 'F    '.      01370001
+             88  SW-Use-CN-Asc                      Value 'FT   '.      01380009
+             88  SW-Use-Fi-CO-Asc                   Value 'FTN  '.      01400001
+             88  SW-Use-Fi-CO-PA-Asc                Value 'FTNP '.      01470002
+             88  SW-Use-Fi-CO-PA-RT-Asc             Value 'FTNPR'.      01530002
+      *                                                                 01550000
+      *----------------------------------------------------------------*01560000
+      * These fields are used for SQL qualification:                    01570000
+      *                                                                 01580000
+           05  W-DB-Key.                                                01590000
+               10  W-DB-Fin-Inst-ID      Pic S9(18)              Comp-3.01600000
+               10  W-DB-Contract-Type    Pic  X(03).                    01610000
+               10  W-DB-From-Contr-No    Pic S9(07)              Comp-3.01620000
+               10  W-DB-To-Contr-No      Pic S9(07)              Comp-3.01630000
+               10  W-DB-CA-Currency      Pic  X(03).                    01640000
+               10  W-DB-From-PA-Seq-No   Pic S9(04)              Comp.  01650001
+               10  W-DB-To-PA-Seq-No     Pic S9(04)              Comp.  01660001
+               10  W-DB-Role-Type        Pic  X(10).                    01670001
+      *                                                                 01700000
+      *----------------------------------------------------------------*01710000
+      * These fields are used for comparison with the WS-fields.        01720000
+      *                                                                 01730000
+           05  WE-Cursor-Info.                                          01740000
+             07  WE-Key.                                                01750000
+               10  WE-Fin-Inst-ID        Pic S9(18)              Comp-3.01760000
+               10  WE-Fin-Inst-No        Pic  X(18).                    01770001
+               10  WE-Contract-Type      Pic  X(03).                    01780000
+               10  WE-From-Contr-No      Pic S9(07)              Comp-3.01790000
+               10  WE-To-Contr-No        Pic S9(07)              Comp-3.01800000
+               10  WE-CA-Currency        Pic  X(03).                    01810000
+               10  WE-From-PA-Seq-No     Pic S9(04)              Comp.  01820001
+               10  WE-To-PA-Seq-No       Pic S9(04)              Comp.  01830001
+               10  WE-Role-Type          Pic  X(10).                    01840001
+             07  WE-Code-Sequence        Pic  X(01).                    01870000
+               88  WE-CS-Ascending                  Value 'A'.          01880000
+               88  WE-CS-Descending                 Value 'D'.          01890000
+      *                                                                 01900000
+      *----------------------------------------------------------------*01910000
+      * Storage, and switches for identifying the content:              01920000
+      * The cursor info is used to verify that the get-next has the     01930000
+      * same qualification as the get-1st.                              01940000
+      *                                                                 01950000
+       01  W-Storage.                                                   01960000
+      *                                                                 01970000
+           05  WS-Cursor-Info.                                          01980000
+             07  WS-Key.                                                01990000
+               10  WS-Fin-Inst-ID        Pic S9(18)              Comp-3.02000000
+               10  WS-Fin-Inst-No        Pic  X(18).                    02010001
+               10  WS-Contract-Type      Pic  X(03).                    02020000
+               10  WS-From-Contr-No      Pic S9(07)              Comp-3.02030000
+               10  WS-To-Contr-No        Pic S9(07)              Comp-3.02040000
+               10  WS-CA-Currency        Pic  X(03).                    02050000
+               10  WS-From-PA-Seq-No     Pic S9(04)              Comp.  02060001
+               10  WS-To-PA-Seq-No       Pic S9(04)              Comp.  02070001
+               10  WS-Role-Type          Pic  X(10).                    02080001
+             07  WS-Code-Sequence        Pic  X(01).                    02110000
+               88  WS-CS-Ascending                  Value 'A'.          02120000
+               88  WS-CS-Descending                 Value 'D'.          02130000
+             07  WS-Cursor-Status        Pic  X(08).                    02140000
+               88  WS-Cursor-OK                     Value 'OK'.         02150000
+               88  WS-Cursor-End                    Value 'END'.        02160000
+      *                                                                 02170000
+      * We store all occurences that are read, also those that we do    02180000
+      * not find. This is to reduce the number of DB2 accesses.         02190000
+      *                                                                 02200000
+           05  WS-DB2-Table.                                            02210000
+             07  WS-DB2-Row              Occurs 10 Times.               02220000
+               10  WS-DB2-Tbl-Version    Pic  X(16).                    02230001
+               10  WS-DB2-Fin-Inst-ID    Pic S9(18)              Comp-3.02240000
+               10  WS-DB2-Contract-Type  Pic  X(03).                    02250000
+               10  WS-DB2-Contract-No    Pic S9(07)              Comp-3.02260000
+               10  WS-DB2-CA-Currency    Pic  X(03).                    02270000
+               10  WS-DB2-PA-Seq-No      Pic S9(04)              Comp.  02280000
+               10  WS-DB2-Role-Type      Pic  X(10).                    02290001
+               10  WS-DB2-Row-Status     Pic S9(01)              Comp-3.02300001
+                 88  WS-DB2-Not-Read                Value +0.           02310000
+                 88  WS-DB2-Read                    Value +1.           02320000
+                 88  WS-DB2-Not-Found               Value +2.           02330000
+               10  WS-DB2-DCL            Pic  X(250).                   02340000
+      *                                                                 02350000
+      *----------------------------------------------------------------*02360000
+      * Areas for use when accessing DB2.                               02370000
+      *                                                                 02380000
+           Exec SQL Include R115TFTP End-Exec.                          02390000
+      *                                                                 02400000
+      *----------------------------------------------------------------*02410000
+      * Internal area:                                                  02420000
+      *                                                                 02430000
+       01  W-Int-IO-Area.                                               02440000
+           Copy R115ITP0.                                               02450000
+      *                                                                 02460000
+      *----------------------------------------------------------------*02470000
+      * Assorted copy-areas:                                            02480000
+      *                                                                 02490000
+       01  Filler.                                                      02500000
+           Copy R115ITPS.                                               02510000
+      *                                                                 02520000
+       01  Filler.                                                      02530000
+           Copy R5879010.                                               02540000
+      *                                                                 02550000
+       01  Filler.                                                      02560000
+           Copy R7918030.                                               02570000
+      *                                                                 02580000
+       Copy R7919100.                                                   02590001
+      *                                                                 02600001
+       Copy R115X000.                                                   02610001
+      *                                                                 02620001
+      *################################################################.02630000
+       Linkage Section.                                                 02640000
+      *                                                                 02650000
+       01  L-Ext-IO-Area                 Pic  X(560).                   02660000
+       Copy R7919999.                                                   02670000
+      *                                                                 02680000
+      *################################################################.02690000
+       Procedure Division                Using L-Ext-IO-Area            02700001
+                                               R7919999-Error-Area.     02710000
+      *                                                                 02720000
+       A000-Main                         Section.                       02730000
+      *                                                                 02740000
+           Perform B000-Initialize                                      02750000
+      *                                                                 02760000
+           Evaluate True                                                02770000
+             When SW-IA-Initialize                                      02780000
+               Continue                                                 02790000
+      *                                                                 02800000
+             When Other                                                 02810000
+               Perform ZI00-Conv-Input-Version                          02820001
+               Perform C000-Interface                                   02830000
+               Perform ZO00-Conv-Output-Version                         02840001
+      *                                                                 02850000
+           End-Evaluate                                                 02860000
+      *                                                                 02870000
+           Goback.                                                      02880000
+      *################################################################*02890000
+       B000-Initialize                   Section.                       02900000
+      *                                                                 02910000
+           Set   R7919999-Return-OK      To    True                     02920000
+      *                                                                 02930000
+           Evaluate True                                                02940000
+             When L-Ext-IO-Area (1:10)   =     'INITIALIZE'             02950000
+               Set   Sw-IA-Initialize    To    True                     02960000
+             When Other                                                 02970000
+               Move  Space               To    W-Input-Action           02980000
+           End-Evaluate                                                 02990000
+      *                                                                 03000000
+           Compute  W-Max-Occ-WS-Tab                                    03010000
+               =    Length               Of    WS-DB2-Table             03020000
+               /    Length               Of    WS-DB2-Row               03030000
+      *                                                                 03040000
+           If  Sw-IA-Initialize                                         03050000
+           or  WS-DB2-Row-Status (1)     Not   Numeric                  03060001
+               Initialize                      W-Storage                03070000
+               Move  +0                  To    Ind-WS-Put               03080000
+           End-If                                                       03090000
+      *                                                                 03100000
+           If  WC-Row-No                 Not   Numeric                  03110000
+           or  WC-Total-No-Of-Rows       Not   Numeric                  03120000
+               Initialize                      WC-Counters              03130000
+           End-If                                                       03140000
+      *                                                                 03150000
+           Evaluate True                                                03160000
+             When Not R115X000-Is-Initiated                             03170000
+               Initialize                      R115X000-External-Data   03180000
+             When Not R115X000-Version                                  03190000
+               Initialize                      R7918030-ErrorMessage    03200000
+               Move  'GL-VERSION-INVALID'                               03210000
+                                         To    R7918030-In-MessageCode  03220000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)03230000
+               Move  R115X000-Version-No To R7918030-In-Variable-Data(1)03240000
+               Move  'VAR2'              To R7918030-In-Variable-Key (2)03250000
+               Move  'R115X000'          To R7918030-In-Variable-Data(2)03260000
+               Perform Z000-Error-Message                               03270000
+               Move  'B001'              To    R7919999-Paragraph       03280000
+               Perform Z900-Abend                                       03290000
+           End-Evaluate                                                 03300000
+      *                                                                 03310000
+           .                                                            03320000
+      *################################################################.03330000
+       C000-Interface                    Section.                       03340000
+      *                                                                 03350000
+           Perform C100-Verify                                          03360001
+      *                                                                 03370001
+           Evaluate True                                                03380000
+             When R115ITP0-In-Get-1st                                   03390000
+               Perform C200-Initialize-Output                           03400001
+               Perform D000-Get-1st                                     03410000
+               Perform E000-Get-Next                                    03420000
+      *                                                                 03430000
+             When R115ITP0-In-Get-Next                                  03440000
+               Perform C200-Initialize-Output                           03450001
+               Perform E000-Get-Next                                    03460000
+      *                                                                 03470000
+             When R115ITP0-In-Select                                    03480000
+               Perform C200-Initialize-Output                           03490001
+               Perform F000-Select                                      03500000
+      *                                                                 03510000
+             When R115ITP0-In-Insert                                    03520000
+               Perform G000-Insert                                      03530000
+      *                                                                 03540000
+             When R115ITP0-In-Update                                    03550000
+               Perform H000-Update                                      03560000
+      *                                                                 03570000
+             When R115ITP0-In-Delete                                    03580000
+               Perform I000-Delete                                      03590000
+      *                                                                 03600000
+             When Other                                                 03610000
+               Initialize                      R7918030-ErrorMessage    03620000
+               Move  'GL-IN-AKSJON-UV'   To    R7918030-In-MessageCode  03630000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)03640000
+               Move  R115ITP0-In-Action  To R7918030-In-Variable-Data(1)03650000
+               Perform Z000-Error-Message                               03660000
+               Move  'C001'              To    R7919999-Paragraph       03670000
+               Perform Z900-Abend                                       03680000
+      *                                                                 03690000
+           End-Evaluate                                                 03700000
+      *                                                                 03710000
+           .                                                            03720000
+      *################################################################.03730001
+       C100-Verify                       Section.                       03740001
+      *                                                                 03750001
+           Evaluate True                                                03760001
+             When R115ITP0-In-Actual                                    03770001
+               Set   SW-Table-Actual     To    True                     03780001
+      *                                                                 03790001
+             When R115ITP0-In-Work                                      03800001
+               Set   SW-Table-Work       To    True                     03810001
+      *                                                                 03820001
+             When other                                                 03830001
+               Initialize                      R7918030-ErrorMessage    03840001
+               Move  'GL-IN-TABLE-VERSION-UV'                           03850001
+                                         To    R7918030-In-MessageCode  03860001
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)03870001
+               Move  R115ITP0-In-Table-Version                          03880001
+                                         To R7918030-In-Variable-Data(1)03890001
+               Perform Z000-Error-Message                               03900001
+               Move  'C101'              To    R7919999-Paragraph       03910001
+               Perform Z900-Abend                                       03920001
+      *                                                                 03930001
+           End-Evaluate                                                 03940001
+      *                                                                 03950001
+      *    If caller has qualified on Part Amount, and relation is not  03960001
+      *    set, we set In-Rel-PA to true.                               03970001
+           Evaluate True                                                03980001
+             When R115ITP0-In-CA-Currency                               03990001
+                                         =     Space                    04000001
+             and  R115ITP0-In-PA-Seq-No  =     +0                       04010001
+               Continue                                                 04020001
+                                                                        04030001
+             When R115ITP0-In-Relation   =     Space                    04040001
+               Set   R115ITP0-In-Rel-PA  To    True                     04050001
+                                                                        04060001
+                                                                        04070001
+           End-Evaluate                                                 04080001
+      *                                                                 04090001
+           .                                                            04100001
+      *################################################################.04110000
+       C200-Initialize-Output            Section.                       04120001
+      *                                                                 04130000
+           Initialize                          R115ITP0-Data            04140000
+      *                                                                 04150000
+           .                                                            04160000
+      *################################################################.04170000
+       D000-Get-1st                      Section.                       04180000
+      *                                                                 04190000
+           Perform D100-Prepare-Input                                   04200000
+           Perform D200-Prepare-Qualification                           04210000
+           Perform D300-Select-Cursor                                   04220000
+           If  R115ITP0-In-CC-Count                                     04230000
+               Perform D400-Count-Cursor                                04240000
+           End-If                                                       04250000
+           Perform D500-Open-Cursor                                     04260000
+      *                                                                 04270000
+           .                                                            04280000
+      *################################################################.04290000
+       D100-Prepare-Input                Section.                       04300000
+      *                                                                 04310000
+      * We create internal from- and to-values, depending on the input. 04320000
+      *                                                                 04330000
+           Initialize                          WE-Cursor-Info           04340000
+      *                                                                 04350000
+           Move  R115ITP0-In-Fin-Inst-ID To    WE-Fin-Inst-ID           04360000
+           Move  R115ITP0-In-Fin-Inst-No To    WE-Fin-Inst-No           04370000
+      *                                                                 04380000
+           Move  R115ITP0-In-Contract-Type                              04390000
+                                         To    WE-Contract-Type         04400000
+           Move  +0                      To    W-Tally                  04410001
+           Inspect WE-Contract-Type     Tallying W-Tally for all '*' '%'04420001
+           If  W-Tally                   >     +0                       04430001
+               Inspect WE-Contract-Type  Converting '* ' to '%%'        04440001
+           End-If                                                       04450001
+      *                                                                 04460000
+           Evaluate R115ITP0-In-From-Contr-No                           04470000
+           also     R115ITP0-In-To-Contr-No                             04480000
+             When +0                                                    04490000
+             also +0                                                    04500000
+               If  R115ITP0-In-Contract-No                              04510001
+                                         =     +0                       04520001
+                 Then                                                   04530001
+                   Move  +0000000        To    WE-From-Contr-No         04540001
+                   Move  +9999999        To    WE-To-Contr-No           04550001
+                 Else                                                   04560001
+                   Move  R115ITP0-In-Contract-No                        04570001
+                                         To    WE-From-Contr-No         04580001
+                   Move  R115ITP0-In-Contract-No                        04590001
+                                         To    WE-To-Contr-No           04600001
+               End-If                                                   04610001
+                                                                        04620000
+             When any                                                   04630000
+             also +0                                                    04640000
+               Move  R115ITP0-In-From-Contr-No                          04650000
+                                         To    WE-From-Contr-No         04660000
+               Move  R115ITP0-In-From-Contr-No                          04670000
+                                         To    WE-To-Contr-No           04680000
+                                                                        04690000
+             When other                                                 04700000
+               Move  R115ITP0-In-From-Contr-No                          04710000
+                                         To    WE-From-Contr-No         04720000
+               Move  R115ITP0-In-To-Contr-No                            04730000
+                                         To    WE-To-Contr-No           04740000
+                                                                        04750000
+           End-Evaluate                                                 04760000
+      *                                                                 04770000
+           Move  R115ITP0-In-Role-Type   To    WE-Role-Type             04780001
+           Move  +0                      To    W-Tally                  04790001
+           Inspect WE-Role-Type         Tallying W-Tally for all '*' '%'04800001
+           If  W-Tally                   >     +0                       04810001
+               Inspect WE-Role-Type      Converting '* ' to '%%'        04820001
+           End-If                                                       04830001
+      *                                                                 04840001
+      *    If we want tast part independant of relation, we can't       04850001
+      *    use these fields in the qualification.                       04860001
+           Evaluate True                                                04870001
+             When R115ITP0-In-Rel-MC                                    04880001
+               Move  Space               To    WE-CA-Currency           04890001
+               Move  +0000               To    WE-From-PA-Seq-No        04900001
+               Move  +0000               To    WE-To-PA-Seq-No          04910001
+                                                                        04920001
+             When R115ITP0-In-Rel-Any                                   04930001
+               Move  Space               To    WE-CA-Currency           04940001
+               Inspect WE-CA-Currency    Converting '* ' to '%%'        04950001
+               Move  +0000               To    WE-From-PA-Seq-No        04960001
+               Move  +9999               To    WE-To-PA-Seq-No          04970001
+                                                                        04980001
+             When R115ITP0-In-PA-Seq-No  =     +0                       04990001
+               Move  R115ITP0-In-CA-Currency                            05000001
+                                         To    WE-CA-Currency           05010001
+               Move  +0                  To    W-Tally                  05020001
+               Inspect WE-CA-Currency   Tallying W-Tally for all '*' '%'05030001
+               If  W-Tally               >     +0                       05040001
+                   Inspect WE-CA-Currency                               05050001
+                                         Converting '* ' to '%%'        05060001
+               End-If                                                   05070001
+               Move  +0001               To    WE-From-PA-Seq-No        05080001
+               Move  +9999               To    WE-To-PA-Seq-No          05090001
+                                                                        05100001
+             When other                                                 05110001
+               Move  R115ITP0-In-CA-Currency                            05120001
+                                         To    WE-CA-Currency           05130001
+               Move  +0                  To    W-Tally                  05140001
+               Inspect WE-CA-Currency   Tallying W-Tally for all '*' '%'05150001
+               If  W-Tally               >     +0                       05160001
+                   Inspect WE-CA-Currency                               05170001
+                                         Converting '* ' to '%%'        05180001
+               End-If                                                   05190001
+               Move  R115ITP0-In-PA-Seq-No                              05200001
+                                         To    WE-From-PA-Seq-No        05210001
+               Move  R115ITP0-In-PA-Seq-No                              05220001
+                                         To    WE-To-PA-Seq-No          05230001
+                                                                        05240001
+           End-Evaluate                                                 05250001
+      *                                                                 05260000
+           .                                                            05390000
+      *################################################################.05400000
+       D200-Prepare-Qualification        Section.                       05410000
+      *                                                                 05420000
+      * We store the qualification, so that we can check that the       05430000
+      * qualification do not change on any following Get-Next.          05440000
+      *                                                                 05450000
+           Initialize                          WS-Cursor-Info           05460000
+           Move  WE-Key                  To    WS-Key                   05470000
+           Move  WE-Code-Sequence        To    WS-Code-Sequence         05480000
+      *                                                                 05490000
+           Initialize WC-Counters                                       05500000
+      *                                                                 05510000
+      * We check that we do not have any "negative" intervals.          05520000
+      * DB2 is not very fond of those...                                05530000
+      *                                                                 05540000
+           If  WS-From-Contr-No          >     WS-To-Contr-No           05550000
+               Initialize                      R7918030-ErrorMessage    05560000
+               Move  'TFMC-NEG-QUAL-CONTR-NO'                           05570001
+                                         To    R7918030-In-MessageCode  05580001
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)05590000
+               Move  WS-From-Contr-No    To R7918030-In-Variable-Data(1)05600000
+               Move  'VAR2'              To R7918030-In-Variable-Key (2)05610000
+               Move  WS-To-Contr-No      To R7918030-In-Variable-Data(2)05620000
+               Perform Z000-Error-Message                               05630000
+               Move  'D201'              To    R7919999-Paragraph       05640000
+               Perform Z900-Abend                                       05650000
+           End-If                                                       05660000
+      *                                                                 05670000
+           If  WS-From-PA-Seq-No         >     WS-To-PA-Seq-No          05680001
+               Initialize                      R7918030-ErrorMessage    05690001
+               Move  'TFPA-NEG-QUAL-SEQ-NO'                             05700001
+                                         To    R7918030-In-MessageCode  05710001
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)05720001
+               Move  WS-From-PA-Seq-No   To R7918030-In-Variable-Data(1)05730001
+               Move  'VAR2'              To R7918030-In-Variable-Key (2)05740001
+               Move  WS-To-PA-Seq-No     To R7918030-In-Variable-Data(2)05750001
+               Perform Z000-Error-Message                               05760001
+               Move  'D202'              To    R7919999-Paragraph       05770001
+               Perform Z900-Abend                                       05780001
+           End-If                                                       05790001
+      *                                                                 05800001
+      * We fill in the SQL host variables.                              05810000
+      *                                                                 05820000
+           Initialize                          W-DB-Key                 05830000
+      *                                                                 05840000
+           Move  WE-Fin-Inst-ID          To    W-DB-Fin-Inst-ID         05850000
+           Move  WE-Contract-Type        To    W-DB-Contract-Type       05860000
+      *                                                                 05870000
+           Move  WE-From-Contr-No        To    W-DB-From-Contr-No       05880000
+           Move  WE-To-Contr-No          To    W-DB-To-Contr-No         05890000
+      *                                                                 05900000
+           Move  WE-Role-Type            To    W-DB-Role-Type           05910001
+      *                                                                 05920001
+           Move  WE-CA-Currency          To    W-DB-CA-Currency         05930000
+           Move  WE-From-PA-Seq-No       To    W-DB-From-PA-Seq-No      05940001
+           Move  WE-To-PA-Seq-No         To    W-DB-To-PA-Seq-No        05950001
+      *                                                                 05960000
+           If  WE-Fin-Inst-No            Not = Space                    05970001
+           and W-DB-Fin-Inst-ID          =     +0                       05980000
+               Move  WE-Fin-Inst-No      To    W-Fin-Inst-No            05990000
+               Perform N100-Fetch-Fin-Inst-ID                           06000000
+               Move  W-Fin-Inst-ID       To    W-DB-Fin-Inst-ID         06010000
+           End-If                                                       06020000
+      *                                                                 06030000
+           .                                                            06360000
+      *################################################################.06370000
+       D300-Select-Cursor                Section.                       06380000
+      *                                                                 06390000
+      * We choose which cursor to use, depending on the qualification.  06400000
+      *                                                                 06410000
+           Move  Space                   To    SW-Cursor-Code           06420000
+      *                                                                 06430000
+           If  W-DB-Fin-Inst-ID          Not = +0                       06440000
+               Set  Sw-Use-Fin-Inst      To    True                     06450000
+           End-If                                                       06460000
+      *                                                                 06470000
+           If  W-DB-Contract-Type        Not = Space                    06480001
+           and W-DB-Contract-Type (1:1)  Not = '%'                      06490001
+               Set   SW-Use-Contract-Type                               06500000
+                                         To    True                     06510000
+           End-If                                                       06520001
+      *                                                                 06530000
+           Evaluate True                                                06540000
+             When W-DB-From-Contr-No     =     +0000000                 06550000
+             and  W-DB-To-Contr-No       =     +9999999                 06560000
+               Continue                                                 06570000
+             When other                                                 06580000
+               Set   SW-Use-Contract-No  To    True                     06590000
+           End-Evaluate                                                 06600000
+      *                                                                 06610000
+           If  Not R115ITP0-In-Rel-Any                                  06621011
+               Set  Sw-Use-Part-Amount   To    True                     06630001
+           End-If                                                       06640000
+      *                                                                 06650000
+      *                                                                 06700001
+      * Role-Type will be used in a "Like"-clause, regardless of input  06710001
+           If  W-DB-Role-Type            Not = Space                    06720002
+           and W-DB-Role-Type (1:1)      Not = '%'                      06730002
+               Set  Sw-Use-Role-Type     To    True                     06740002
+           End-If                                                       06750002
+      *                                                                 06760001
+           Evaluate True                                                06770000
+             When SW-Use-Fi-Asc                                         06780000
+             or   SW-Use-CN-Asc                                         06800000
+             or   SW-Use-Fi-Co-Asc                                      06820002
+             or   SW-Use-Fi-Co-PA-Asc                                   06890002
+             or   SW-Use-Fi-Co-PA-Rt-Asc                                06950002
+               Continue                                                 06970000
+      *                                                                 06980000
+             When other                                                 06990000
+               Initialize                      R7918030-ErrorMessage    07000000
+               Move  'GL-CURSOR-UV'      To    R7918030-In-MessageCode  07010000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)07020000
+               Move  SW-Cursor-Code      To R7918030-In-Variable-Data(1)07030000
+               Perform Z000-Error-Message                               07040000
+               Move  'D302'              To    R7919999-Paragraph       07050000
+               Perform Z900-Abend                                       07060000
+      *                                                                 07070000
+           End-Evaluate                                                 07080000
+      *                                                                 07090000
+           .                                                            07100000
+      *################################################################.07110000
+       D400-Count-Cursor                 Section.                       07120000
+      *                                                                 07130000
+           Initialize                          R115ITPS-SQL-Submodules  07140000
+           Set   R115ITPS-Version        To    True                     07150000
+           Set   R115ITPS-In-Count-Cursor                               07160000
+                                         To    True                     07170000
+           Move  R115ITP0-In-Table-Version                              07180001
+                                         To    R115ITPS-In-Table-Version07190001
+           Move  Sw-Cursor-Code          To    R115ITPS-Cursor-Code     07200000
+           Move  W-DB-Key                To    R115ITPS-DB-Key          07210000
+      *                                                                 07220000
+           Call  'F115ITPR'              Using R115ITPS-SQL-Submodules  07230000
+                                               DCLTF-Tast-Part          07240000
+                                               R7919999-Error-Area      07250000
+           End-Call                                                     07260000
+      *                                                                 07270000
+           Evaluate True                                                07280000
+             When R7919999-Return-OK                                    07290000
+               Move  R115ITPS-Out-Total-Rows                            07300000
+                                         To    WC-Total-No-Of-Rows      07310000
+      *                                                                 07320000
+             When other                                                 07330000
+               Move  'D401'              To    R7919999-Paragraph       07340000
+               Perform Z900-Abend                                       07350000
+      *                                                                 07360000
+           End-Evaluate                                                 07370000
+      *                                                                 07380000
+           .                                                            07390000
+      *################################################################.07400000
+       D500-Open-Cursor                  Section.                       07410000
+      *                                                                 07420000
+           Initialize                          R115ITPS-SQL-Submodules  07430000
+           Set   R115ITPS-Version        To    True                     07440000
+           Set   R115ITPS-In-Open-Cursor To    True                     07450000
+           Move  R115ITP0-In-Table-Version                              07460001
+                                         To    R115ITPS-In-Table-Version07470001
+           Move  Sw-Cursor-Code          To    R115ITPS-Cursor-Code     07480000
+           Move  W-DB-Key                To    R115ITPS-DB-Key          07490000
+      *                                                                 07500000
+           Call  'F115ITPR'              Using R115ITPS-SQL-Submodules  07510000
+                                               DCLTF-Tast-Part          07520000
+                                               R7919999-Error-Area      07530000
+           End-Call                                                     07540000
+      *                                                                 07550000
+           Evaluate True                                                07560000
+             When R7919999-Return-OK                                    07570000
+               Set   WS-Cursor-OK        To    True                     07580000
+      *                                                                 07590000
+             When other                                                 07600000
+               Move  'D501'              To    R7919999-Paragraph       07610000
+               Perform Z900-Abend                                       07620000
+      *                                                                 07630000
+           End-Evaluate                                                 07640000
+      *                                                                 07650000
+           .                                                            07660000
+      *################################################################.07670000
+       E000-Get-Next                     Section.                       07680000
+      *                                                                 07690000
+           Perform D100-Prepare-Input                                   07700000
+           Perform E100-Check-Qualification                             07710000
+           Perform E200-Fetch-Cursor                                    07720000
+      *                                                                 07730000
+           If  R7919999-Return-OK                                       07740000
+               Perform L100-Store-DCL                                   07750000
+               Perform J000-Get-Columns                                 07760000
+           End-If                                                       07770000
+      *                                                                 07780000
+           .                                                            07790000
+      *################################################################.07800000
+       E100-Check-Qualification          Section.                       07810000
+      *                                                                 07820000
+      * We use the WE-fields for comparison with the WS-fields.         07830000
+      * This to verify that the qualification has not changes since     07840000
+      * the Get-1st.                                                    07850000
+      *                                                                 07860000
+           Evaluate True                                                07870000
+             When WE-Key                 =     WS-Key                   07880000
+             and  WE-Code-Sequence       =     WS-Code-Sequence         07890000
+             and  WS-Cursor-OK                                          07900000
+               Continue                                                 07910000
+      *                                                                 07920000
+             When WE-Key                 =     WS-Key                   07930000
+             and  WE-Code-Sequence       =     WS-Code-Sequence         07940000
+             and  WS-Cursor-End                                         07950000
+               Initialize                      R7918030-ErrorMessage    07960000
+               Move  'DB-LEST-SISTE'     To    R7918030-In-MessageCode  07970000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)07980000
+               Move  W-Table-Name        To R7918030-In-Variable-Data(1)07990000
+               Perform Z000-Error-Message                               08000000
+               Move  'E101'              To    R7919999-Paragraph       08010000
+               Perform Z900-Abend                                       08020000
+      *                                                                 08030000
+             When Other                                                 08040000
+               Initialize                      R7918030-ErrorMessage    08050000
+               Move  'GL-BRUK-GET-1ST'   To    R7918030-In-MessageCode  08060000
+               Perform Z000-Error-Message                               08070000
+               Move  'E102'              To    R7919999-Paragraph       08080000
+               Perform Z900-Abend                                       08090000
+      *                                                                 08100000
+           End-Evaluate                                                 08110000
+      *                                                                 08120000
+           .                                                            08130000
+      *################################################################.08140000
+       E200-Fetch-Cursor                 Section.                       08150000
+      *                                                                 08160000
+           Initialize                          R115ITPS-SQL-Submodules  08170000
+           Set   R115ITPS-Version        To    True                     08180000
+           Set   R115ITPS-In-Fetch-Cursor                               08190000
+                                         To    True                     08200000
+           Move  R115ITP0-In-Table-Version                              08210001
+                                         To    R115ITPS-In-Table-Version08220001
+           Move  Sw-Cursor-Code          To    R115ITPS-Cursor-Code     08230000
+           Move  W-DB-Key                To    R115ITPS-DB-Key          08240000
+      *                                                                 08250000
+           Call  'F115ITPR'              Using R115ITPS-SQL-Submodules  08260000
+                                               DCLTF-Tast-Part          08270000
+                                               R7919999-Error-Area      08280000
+           End-Call                                                     08290000
+      *                                                                 08300000
+           Evaluate True                                                08310000
+             When R7919999-Return-OK                                    08320000
+               Add   +1                  To    WC-Row-No                08330000
+      *                                                                 08340000
+             When R7919999-Return-Error                                 08350000
+               Set   WS-Cursor-End       To    True                     08360000
+               If  WC-Row-No             =     +0                       08370000
+                 Then                                                   08380000
+                   Initialize                  R7918030-ErrorMessage    08390000
+                   Move  'DB-FOREKOMST-NF'                              08400000
+                                         To    R7918030-In-MessageCode  08410000
+                   Move  'VAR1'          To R7918030-In-Variable-Key (1)08420000
+                   Move  W-Table-Name    To R7918030-In-Variable-Data(1)08430000
+                   Perform Z000-Error-Message                           08440000
+                 Else                                                   08450000
+                   Initialize                  R7918030-ErrorMessage    08460000
+                   Move  'DB-LEST-SISTE' To    R7918030-In-MessageCode  08470000
+                   Move  'VAR1'          To R7918030-In-Variable-Key (1)08480000
+                   Move  W-Table-Name    To R7918030-In-Variable-Data(1)08490000
+                   Perform Z000-Error-Message                           08500000
+               End-If                                                   08510000
+      *                                                                 08520000
+             When other                                                 08530000
+               Move  'E201'              To    R7919999-Paragraph       08540000
+               Perform Z900-Abend                                       08550000
+      *                                                                 08560000
+           End-Evaluate                                                 08570000
+      *                                                                 08580000
+           .                                                            08590000
+      *################################################################.08600000
+       F000-Select                       Section.                       08610000
+      *                                                                 08620000
+           Perform F100-Prepare-Qualification                           08630000
+      *                                                                 08640000
+      * We will first look through the storage, to see if we have       08650000
+      * already got the wanted occurence.                               08660000
+      *                                                                 08670000
+           Perform L200-Find-DCL                                        08680000
+      *                                                                 08690000
+      * If we didn't find anything, we need to read. Then we store.     08700000
+      *                                                                 08710000
+           If  Ind-WS                    >     W-Max-Occ-WS-Tab         08720000
+           or  WS-DB2-Not-Read (Ind-WS)                                 08730000
+               Perform F200-Select-Row                                  08740000
+               Perform L100-Store-DCL                                   08750000
+           End-If                                                       08760000
+      *                                                                 08770000
+      * At last we check what we've got to offer.                       08780000
+      *                                                                 08790000
+           Evaluate True                                                08800000
+             When WS-DB2-Read (Ind-WS)                                  08810000
+               Move  WS-DB2-DCL (Ind-WS) To    DCLTF-Tast-Part          08820000
+               Perform J000-Get-Columns                                 08830000
+      *                                                                 08840000
+             When other                                                 08850000
+               Initialize                      R7918030-ErrorMessage    08860000
+               Move  'DB-FOREKOMST-NF-Q' To    R7918030-In-MessageCode  08870000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)08880000
+               Move  W-Table-Name        To R7918030-In-Variable-Data(1)08890000
+               Move  'VAR2'              To R7918030-In-Variable-Key (2)08900000
+               Move  FK-OAKO-FinInst-ID  To WD-Fin-Inst-ID              08910000
+               Move  FK-TFMC-Contr-No    To WD-Contract-No              08920000
+               Move  FK-TFPA-Seq-No      To WD-PA-Seq-No                08930001
+               String WD-Fin-Inst-ID           Delimited by size        08940000
+                      '/'                      Delimited by size        08950001
+                      FK-TFMC-Contr-Type       Delimited by space       08960000
+                      WD-Contract-No           Delimited by space       08970000
+                      '/'                      Delimited by size        08980001
+                      FK-TFCA-Currency         Delimited by space       08990001
+                      WD-PA-Seq-No             Delimited by size        09000001
+                      '/'                      Delimited by size        09010001
+                      FK-KFTY-Role-Type        Delimited by space       09020003
+                                       Into R7918030-In-Variable-Data(2)09030000
+               End-String                                               09040000
+               Perform Z000-Error-Message                               09050000
+               Set   R7919999-Return-Error                              09060000
+                                         To    True                     09070000
+      *                                                                 09080000
+           End-Evaluate                                                 09090000
+      *                                                                 09100000
+           .                                                            09110000
+      *################################################################.09120000
+       F100-Prepare-Qualification        Section.                       09130000
+      *                                                                 09140000
+      * We fill in the host variables for the SQL.                      09150000
+      *                                                                 09160000
+           Initialize                          DCLTF-Tast-Part          09170000
+      *                                                                 09180000
+           Move  R115ITP0-In-Fin-Inst-ID To    FK-OAKO-FinInst-ID       09190000
+           Move  R115ITP0-In-Contract-Type                              09200000
+                                         To    FK-TFMC-Contr-Type       09210000
+           Move  R115ITP0-In-Contract-No To    FK-TFMC-Contr-No         09220000
+           Move  R115ITP0-In-Role-Type   To    FK-KFTY-Role-Type        09230003
+      *                                                                 09240001
+           Evaluate True                                                09250001
+             When R115ITP0-In-Rel-MC                                    09260001
+               Move  Space               To    FK-TFCA-Currency         09270001
+               Move  +0                  To    FK-TFPA-Seq-No           09280001
+             When other                                                 09290001
+               Move  R115ITP0-In-CA-Currency                            09300001
+                                         To    FK-TFCA-Currency         09310001
+               Move  R115ITP0-In-PA-Seq-No                              09320001
+                                         To    FK-TFPA-Seq-No           09330001
+           End-Evaluate                                                 09340001
+      *                                                                 09350000
+           If  R115ITP0-In-Fin-Inst-No   Not = Space                    09360001
+           and R115ITP0-In-Fin-Inst-ID   =     +0                       09370000
+               Move  R115ITP0-In-Fin-Inst-No                            09380000
+                                         To    W-Fin-Inst-No            09390000
+               Perform N100-Fetch-Fin-Inst-ID                           09400000
+               Move  W-Fin-Inst-ID       To    FK-OAKO-FinInst-ID       09410000
+           End-If                                                       09420000
+      *                                                                 09430000
+           .                                                            09440000
+      *################################################################.09450000
+       F200-Select-Row                   Section.                       09460000
+      *                                                                 09470000
+           Initialize                          R115ITPS-SQL-Submodules  09480000
+           Set   R115ITPS-Version        To    True                     09490000
+           Set   R115ITPS-In-Select      To    True                     09500000
+           Move  R115ITP0-In-Table-Version                              09510001
+                                         To    R115ITPS-In-Table-Version09520001
+      *                                                                 09530000
+           Call  'F115ITPR'              Using R115ITPS-SQL-Submodules  09540000
+                                               DCLTF-Tast-Part          09550000
+                                               R7919999-Error-Area      09560000
+           End-Call                                                     09570000
+      *                                                                 09580000
+           Evaluate True                                                09590000
+             When R7919999-Return-OK                                    09600000
+               Continue                                                 09610000
+      *                                                                 09620000
+             When R7919999-Return-Error                                 09630000
+               Continue                                                 09640000
+      *                                                                 09650000
+             When other                                                 09660000
+               Move  'F201'              To    R7919999-Paragraph       09670000
+               Perform Z900-Abend                                       09680000
+      *                                                                 09690000
+           End-Evaluate                                                 09700000
+      *                                                                 09710000
+           .                                                            09720000
+      *################################################################.09730000
+       G000-Insert                       Section.                       09740000
+      *                                                                 09750000
+           Perform G100-Move-Input-To-DCL                               09760000
+           Perform G200-Insert-Row                                      09770000
+      *                                                                 09780000
+           Perform L300-Remove-DCL                                      09790000
+           Perform L100-Store-DCL                                       09800000
+      *                                                                 09810000
+           .                                                            09820000
+      *################################################################.09830000
+       G100-Move-Input-To-DCL            Section.                       09840000
+      *                                                                 09850000
+      * PLEASE REMEMBER:                                                09860001
+      *    When you modify the code in this section, you need to do     09870001
+      *    the same modifications in module F115ATP0 - E200-section.    09880002
+      *                                                                 09890001
+           Initialize                          DCLTF-Tast-Part          09900000
+      *                                                                 09910000
+           Move R115ITP0-Fin-Inst-ID     To    FK-OAKO-FinInst-ID       09920000
+           If  R115ITP0-Fin-Inst-No      Not = Space                    09930001
+           and R115ITP0-Fin-Inst-ID      =     +0                       09940000
+               Move  R115ITP0-Fin-Inst-No                               09950001
+                                         To    W-Fin-Inst-No            09960000
+               Perform N100-Fetch-Fin-Inst-ID                           09970000
+               Move  W-Fin-Inst-ID       To    FK-OAKO-FinInst-ID       09980000
+           End-If                                                       09990000
+      *                                                                 10000000
+           Move R115ITP0-Contract-Type   To    FK-TFMC-Contr-Type       10010000
+           Move R115ITP0-Contract-No     To    FK-TFMC-Contr-No         10020000
+           Move R115ITP0-Role-Type       To    FK-KFTY-Role-Type        10030003
+      *                                                                 10040000
+           Move R115ITP0-CA-Currency     To    FK-TFCA-Currency         10050001
+           Move R115ITP0-PA-Seq-No       To    FK-TFPA-Seq-No           10060001
+      *                                                                 10210001
+           Move R115ITP0-Bic             To    TFTP-Bic                 10220004
+           Move R115ITP0-Name            To    TFTP-Navn                10230004
+           Move R115ITP0-Address1        To    TFTP-Adresse-1           10231005
+           Move R115ITP0-Address2        To    TFTP-Adresse-2           10232005
+           Move R115ITP0-Address3        To    TFTP-Adresse-3           10233005
+           Move R115ITP0-Address4        To    TFTP-Adresse-4           10234005
+           Move R115ITP0-Country-Code    To    TFTP-Landkode            10235004
+           Move R115ITP0-Geo-Code        To    TFTP-Geokode             10236004
+      *                                                                 10240000
+           .                                                            10250000
+      *################################################################.10260000
+       G200-Insert-Row                   Section.                       10270000
+      *                                                                 10280000
+           Initialize                          R115ITPS-SQL-Submodules  10290000
+           Set   R115ITPS-Version        To    True                     10300000
+           Set   R115ITPS-In-Insert      To    True                     10310000
+           Move  R115ITP0-In-Table-Version                              10320001
+                                         To    R115ITPS-In-Table-Version10330001
+      *                                                                 10340000
+           Call  'F115ITPU'              Using R115ITPS-SQL-Submodules  10350000
+                                               DCLTF-Tast-Part          10360000
+                                               R7919999-Error-Area      10370000
+           End-Call                                                     10380000
+      *                                                                 10390000
+           Evaluate True                                                10400000
+             When R7919999-Return-OK                                    10410000
+               Continue                                                 10420000
+      *                                                                 10430000
+             When R7919999-Return-Error                                 10440000
+               Continue                                                 10450000
+      *                                                                 10460000
+             When other                                                 10470000
+               Move  'G201'              To    R7919999-Paragraph       10480000
+               Perform Z900-Abend                                       10490000
+      *                                                                 10500000
+           End-Evaluate                                                 10510000
+      *                                                                 10520000
+           .                                                            10530000
+      *################################################################.10540000
+       H000-Update                       Section.                       10550000
+      *                                                                 10560000
+           Perform H100-Check-Qualification                             10570000
+           Perform G100-Move-Input-To-DCL                               10580000
+      *                                                                 10590000
+           Perform H200-Update-Row                                      10600000
+      *                                                                 10610000
+           Perform L300-Remove-DCL                                      10620000
+           Perform L100-Store-DCL                                       10630000
+      *                                                                 10640000
+           .                                                            10650000
+      *################################################################.10660000
+       H100-Check-Qualification          Section.                       10670000
+      *                                                                 10680000
+           Evaluate True                                                10690000
+             When R115ITP0-Fin-Inst-ID   Not = +0                       10700000
+               Continue                                                 10710000
+                                                                        10720000
+             When R115ITP0-Fin-Inst-No   Not = Space                    10730001
+               Move  R115ITP0-Fin-Inst-No                               10740000
+                                         To    W-Fin-Inst-No            10750000
+               Perform N100-Fetch-Fin-Inst-ID                           10760000
+               Move  W-Fin-Inst-ID       To    R115ITP0-Fin-Inst-ID     10770000
+                                                                        10780000
+             When R115ITP0-In-Fin-Inst-Id Not = +0                      10790000
+               Move R115ITP0-In-Fin-Inst-ID                             10800000
+                                         To    R115ITP0-Fin-Inst-ID     10810000
+                                                                        10820000
+             When R115ITP0-In-Fin-Inst-No                               10830001
+                                         Not = Space                    10840001
+               Move  R115ITP0-In-Fin-Inst-No                            10850000
+                                         To    W-Fin-Inst-No            10860000
+               Perform N100-Fetch-Fin-Inst-ID                           10870000
+               Move  W-Fin-Inst-ID       To    R115ITP0-Fin-Inst-ID     10880000
+                                                                        10890000
+             When other                                                 10900000
+               Initialize                      R7918030-ErrorMessage    10910000
+               Move  'TF-FIN-INST-MISSING'                              10920000
+                                         To    R7918030-In-MessageCode  10930000
+               Perform Z000-Error-Message                               10940000
+               Set   R7919999-Return-Error                              10950000
+                                         To    True                     10960000
+                                                                        10970000
+           End-Evaluate                                                 10980000
+      *                                                                 10990000
+           Evaluate True                                                11000000
+             When R115ITP0-Contract-Type Not = Space                    11010000
+               Continue                                                 11020000
+                                                                        11030000
+             When R115ITP0-In-Contract-Type                             11040000
+                                         Not = Space                    11050000
+               Move R115ITP0-In-Contract-Type                           11060000
+                                         To    R115ITP0-Contract-Type   11070000
+                                                                        11080000
+             When other                                                 11090000
+               Initialize                      R7918030-ErrorMessage    11100000
+               Move  'TF-CONTRACT-MISSING'                              11110000
+                                         To    R7918030-In-MessageCode  11120000
+               Perform Z000-Error-Message                               11130000
+               Set   R7919999-Return-Error                              11140000
+                                         To    True                     11150000
+                                                                        11160000
+           End-Evaluate                                                 11170000
+      *                                                                 11180000
+           Evaluate True                                                11190000
+             When R115ITP0-Contract-No   Not = +0                       11200000
+               Continue                                                 11210000
+                                                                        11220000
+             When R115ITP0-In-Contract-No                               11230000
+                                         Not = +0                       11240000
+               Move R115ITP0-In-Contract-No                             11250000
+                                         To    R115ITP0-Contract-No     11260000
+                                                                        11270000
+             When other                                                 11280000
+               Initialize                      R7918030-ErrorMessage    11290000
+               Move  'TF-CONTRACT-MISSING'                              11300000
+                                         To    R7918030-In-MessageCode  11310000
+               Perform Z000-Error-Message                               11320000
+               Set   R7919999-Return-Error                              11330000
+                                         To    True                     11340000
+                                                                        11350000
+           End-Evaluate                                                 11360000
+      *                                                                 11370000
+           Evaluate True                                                11380001
+             When R115ITP0-Role-Type     Not = Space                    11390001
+               Continue                                                 11400001
+                                                                        11410001
+             When R115ITP0-In-Role-Type Not = Space                     11420001
+               Move R115ITP0-In-Role-Type                               11430001
+                                         To    R115ITP0-Role-Type       11440001
+                                                                        11450001
+             When other                                                 11460001
+               Initialize                      R7918030-ErrorMessage    11470001
+               Move  'TF-ROLE-MISSING'   To    R7918030-In-MessageCode  11480004
+               Perform Z000-Error-Message                               11490001
+               Set   R7919999-Return-Error                              11500001
+                                         To    True                     11510001
+                                                                        11520001
+           End-Evaluate                                                 11530001
+      *                                                                 11540001
+           Evaluate True                                                11550001
+             When R115ITP0-In-Rel-MC                                    11560001
+               Continue                                                 11570001
+                                                                        11580001
+             When R115ITP0-CA-Currency   Not = Space                    11590001
+               Continue                                                 11600001
+                                                                        11610001
+             When R115ITP0-In-CA-Currency                               11620001
+                                         Not = Space                    11630001
+               Move R115ITP0-In-CA-Currency                             11640001
+                                         To    R115ITP0-CA-Currency     11650001
+                                                                        11660001
+             When other                                                 11670001
+               Initialize                      R7918030-ErrorMessage    11680001
+               Move  'TF-PART-AMOUNT-MISSING'                           11690001
+                                         To    R7918030-In-MessageCode  11700001
+               Perform Z000-Error-Message                               11710001
+               Set   R7919999-Return-Error                              11720001
+                                         To    True                     11730001
+                                                                        11740001
+           End-Evaluate                                                 11750001
+      *                                                                 11760001
+           Evaluate True                                                11770001
+             When R115ITP0-In-Rel-MC                                    11780001
+               Continue                                                 11790001
+                                                                        11800001
+             When R115ITP0-PA-Seq-No     Not = +0                       11810001
+               Continue                                                 11820001
+                                                                        11830001
+             When R115ITP0-In-PA-Seq-No  Not = +0                       11840001
+               Move R115ITP0-In-PA-Seq-No                               11850001
+                                         To    R115ITP0-PA-Seq-No       11860001
+                                                                        11870001
+             When other                                                 11880001
+               Initialize                      R7918030-ErrorMessage    11890001
+               Move  'TF-PART-AMOUNT-MISSING'                           11900001
+                                         To    R7918030-In-MessageCode  11910001
+               Perform Z000-Error-Message                               11920001
+               Set   R7919999-Return-Error                              11930001
+                                         To    True                     11940001
+                                                                        11950001
+           End-Evaluate                                                 11960001
+      *                                                                 11970001
+           .                                                            11980001
+      *################################################################.11990000
+       H200-Update-Row                   Section.                       12000000
+      *                                                                 12010000
+           Initialize                          R115ITPS-SQL-Submodules  12020000
+           Set   R115ITPS-Version        To    True                     12030000
+           Set   R115ITPS-In-Update      To    True                     12040000
+           Move  R115ITP0-In-Table-Version                              12050001
+                                         To    R115ITPS-In-Table-Version12060001
+      *                                                                 12070000
+           Call  'F115ITPU'              Using R115ITPS-SQL-Submodules  12080000
+                                               DCLTF-Tast-Part          12090000
+                                               R7919999-Error-Area      12100000
+           End-Call                                                     12110000
+      *                                                                 12120000
+           Evaluate True                                                12130000
+             When R7919999-Return-OK                                    12140000
+               Continue                                                 12150000
+      *                                                                 12160000
+             When R7919999-Return-Error                                 12170000
+               Continue                                                 12180000
+      *                                                                 12190000
+             When other                                                 12200000
+               Move  'H201'              To    R7919999-Paragraph       12210000
+               Perform Z900-Abend                                       12220000
+      *                                                                 12230000
+           End-Evaluate                                                 12240000
+      *                                                                 12250000
+           .                                                            12260000
+      *################################################################.12270000
+       I000-Delete                       Section.                       12280000
+      *                                                                 12290000
+           Perform F100-Prepare-Qualification                           12300000
+           Perform I200-Delete-Row                                      12310000
+      *                                                                 12320000
+           Perform L300-Remove-DCL                                      12330000
+      *                                                                 12340000
+           .                                                            12350000
+      *################################################################.12360000
+       I200-Delete-Row                   Section.                       12370000
+      *                                                                 12380000
+           Initialize                          R115ITPS-SQL-Submodules  12390000
+           Set   R115ITPS-Version        To    True                     12400000
+           Set   R115ITPS-In-Delete      To    True                     12410000
+           Move  R115ITP0-In-Table-Version                              12420001
+                                         To    R115ITPS-In-Table-Version12430001
+      *                                                                 12440000
+           Call  'F115ITPU'              Using R115ITPS-SQL-Submodules  12450000
+                                               DCLTF-Tast-Part          12460000
+                                               R7919999-Error-Area      12470000
+           End-Call                                                     12480000
+      *                                                                 12490000
+           Evaluate True                                                12500000
+             When R7919999-Return-OK                                    12510000
+               Continue                                                 12520000
+      *                                                                 12530000
+             When R7919999-Return-Error                                 12540000
+               Continue                                                 12550000
+      *                                                                 12560000
+             When other                                                 12570000
+               Move  'I201'              To    R7919999-Paragraph       12580000
+               Perform Z900-Abend                                       12590000
+      *                                                                 12600000
+           End-Evaluate                                                 12610000
+      *                                                                 12620000
+           .                                                            12630000
+      *################################################################.12640000
+       J000-Get-Columns                  Section.                       12650000
+      *                                                                 12660000
+           Perform J100-Move-DCL-To-Output                              12670000
+      *                                                                 12680000
+           .                                                            12690000
+      *################################################################.12700000
+       J100-Move-DCL-To-Output           Section.                       12710000
+      *                                                                 12720000
+      * PLEASE REMEMBER:                                                12730001
+      *    When you modify the code in this section, you need to do     12740001
+      *    the same modifications in module F115ATP0 - E500-section.    12750004
+      *                                                                 12760001
+           Move  FK-OAKO-FinInst-ID      To    R115ITP0-Fin-Inst-ID     12770000
+           Move  FK-TFMC-Contr-Type      To    R115ITP0-Contract-Type   12780000
+           Move  FK-TFMC-Contr-No        To    R115ITP0-Contract-No     12790000
+      *                                                                 12800000
+           Move  FK-OAKO-FinInst-ID      To    W-Fin-Inst-ID            12810000
+           Perform N200-Fetch-Fin-Inst-No                               12820000
+           Move  W-Fin-Inst-No           To    R115ITP0-Fin-Inst-No     12830000
+      *                                                                 12840000
+           Move  FK-KFTY-Role-Type       To    R115ITP0-Role-Type       12850003
+      *                                                                 12860001
+           Move  FK-TFCA-Currency        To    R115ITP0-CA-Currency     12870001
+           Move  FK-TFPA-Seq-No          To    R115ITP0-PA-Seq-No       12880001
+      *                                                                 13030001
+           Move  TFTP-Bic                To    R115ITP0-Bic             13040004
+           Move  TFTP-Navn               To    R115ITP0-Name            13050004
+           Move  TFTP-Adresse-1          To    R115ITP0-Address1        13051005
+           Move  TFTP-Adresse-2          To    R115ITP0-Address2        13052005
+           Move  TFTP-Adresse-3          To    R115ITP0-Address3        13053005
+           Move  TFTP-Adresse-4          To    R115ITP0-Address4        13054005
+           Move  TFTP-Landkode           To    R115ITP0-Country-Code    13055004
+           Move  TFTP-Geokode            To    R115ITP0-Geo-Code        13056004
+      *                                                                 13060001
+      * Info about the cursor:                                          13070000
+      *                                                                 13080000
+           Move  WC-Row-No               To    R115ITP0-Out-Row-No      13090001
+           Move  WC-Total-No-Of-Rows     To    R115ITP0-Out-Total-Rows  13100001
+      *                                                                 13110000
+           .                                                            13120000
+      *################################################################.13130000
+       L100-Store-DCL                    Section.                       13140000
+      *                                                                 13150000
+      * We might already have this row in storage.                      13160001
+      *                                                                 13170001
+           Perform L200-Find-DCL                                        13180001
+      *                                                                 13190001
+           If  Ind-WS                    >     W-Max-Occ-WS-Tab         13200001
+           or  WS-DB2-Not-Read (Ind-WS)                                 13210001
+             Then                                                       13220001
+      *        If we have reached the end of the storage-table,         13230001
+      *        we start on the beginning.                               13240001
+      *        This way, we always keep the "newest" occurrences.       13250001
+               Add   +1                  To    Ind-WS-Put               13260001
+               If  Ind-WS-Put            >     W-Max-Occ-WS-Tab         13270001
+                   Move  +1              To    Ind-WS-Put               13280001
+               End-If                                                   13290001
+               Move  Ind-WS-Put          To    Ind-WS                   13300001
+             Else                                                       13310001
+               Move  Ind-WS              To    Ind-WS-Put               13320001
+           End-If                                                       13330001
+      *                                                                 13340001
+      * We store the identification.                                    13350000
+      *                                                                 13360000
+           Move  R115ITP0-In-Table-Version                              13370001
+                                         To    WS-DB2-Tbl-Version       13380001
+                                                            (Ind-WS-Put)13390001
+           Move  FK-OAKO-FinInst-ID      To    WS-DB2-Fin-Inst-ID       13400000
+                                                            (Ind-WS-Put)13410000
+           Move  FK-TFMC-Contr-Type      To    WS-DB2-Contract-Type     13420000
+                                                            (Ind-WS-Put)13430000
+           Move  FK-TFMC-Contr-No        To    WS-DB2-Contract-No       13440000
+                                                            (Ind-WS-Put)13450000
+           Move  FK-TFCA-Currency        To    WS-DB2-CA-Currency       13460001
+                                                            (Ind-WS-Put)13470000
+           Move  FK-TFPA-Seq-No          To    WS-DB2-PA-Seq-No         13480001
+                                                            (Ind-WS-Put)13490001
+           Move  FK-KFTY-Role-Type       To    WS-DB2-Role-Type         13500003
+                                                            (Ind-WS-Put)13510001
+      *                                                                 13520000
+      * The DCL is stored if found, the status is set.                  13530000
+      *                                                                 13540000
+           Evaluate True                                                13550000
+             When Length                 Of    DCLTF-Tast-Part          13560000
+                > Length                 Of    WS-DB2-DCL               13570000
+               Move  Length              Of    DCLTF-Tast-Part          13580000
+                                         To    WD-Length                13590000
+               Initialize                      R7918030-ErrorMessage    13600000
+               Move  'GL-WL-DCL-UTVIDES' To    R7918030-In-MessageCode  13610000
+               Move  'VAR1'              To R7918030-In-Variable-Key (1)13620000
+               Move  WD-Length           To R7918030-In-Variable-Data(1)13630000
+               Perform Z000-Error-Message                               13640000
+               Move  'L101'              To    R7919999-Paragraph       13650000
+               Perform Z900-Abend                                       13660000
+      *                                                                 13670000
+             When R7919999-Return-Error                                 13680000
+               Set   WS-DB2-Not-Found (Ind-WS-Put)                      13690000
+                                         To    True                     13700000
+      *                                                                 13710000
+             When other                                                 13720000
+               Move  DCLTF-Tast-Part                                    13730000
+                                         To    WS-DB2-DCL   (Ind-WS-Put)13740000
+               Set   WS-DB2-Read (Ind-WS-Put)                           13750000
+                                         To    True                     13760000
+      *                                                                 13770000
+           End-Evaluate                                                 13780000
+      *                                                                 13790000
+           .                                                            13800000
+      *################################################################.13810000
+       L200-Find-DCL                     Section.                       13820000
+      *                                                                 13830000
+           Perform Varying Ind-WS                                       13840000
+                   From  +1              By    +1                       13850000
+                   Until Ind-WS          >     W-Max-Occ-WS-Tab         13860000
+                   or  ( WS-DB2-Tbl-Version (Ind-WS)                    13870001
+                                         =     R115ITP0-In-Table-Version13880001
+                     and WS-DB2-Fin-Inst-ID (Ind-WS)                    13890001
+                                         =     FK-OAKO-FinInst-ID       13900000
+                     and WS-DB2-Contract-Type (Ind-WS)                  13910000
+                                         =     FK-TFMC-Contr-Type       13920000
+                     and WS-DB2-Contract-No (Ind-WS)                    13930000
+                                         =     FK-TFMC-Contr-No         13940000
+                     and WS-DB2-CA-Currency (Ind-WS)                    13950001
+                                         =     FK-TFCA-Currency         13960001
+                     and WS-DB2-PA-Seq-No (Ind-WS)                      13970001
+                                         =     FK-TFPA-Seq-No           13980001
+                     and WS-DB2-Role-Type (Ind-WS)                      13990001
+                                         =     FK-KFTY-Role-Type )      14000003
+           End-Perform                                                  14010000
+      *                                                                 14020000
+           .                                                            14030000
+      *################################################################*14040000
+       L300-Remove-DCL                   Section.                       14050000
+      *                                                                 14060000
+           Perform Varying Ind-WS                                       14070000
+                   From  +1              By    +1                       14080000
+                   Until Ind-WS          >     W-Max-Occ-WS-Tab         14090000
+                   or  ( WS-DB2-Tbl-Version (Ind-WS)                    14100001
+                                         =     R115ITP0-In-Table-Version14110001
+                     and WS-DB2-Fin-Inst-ID (Ind-WS)                    14120001
+                                         =     FK-OAKO-FinInst-ID       14130000
+                     and WS-DB2-Contract-Type (Ind-WS)                  14140000
+                                         =     FK-TFMC-Contr-Type       14150000
+                     and WS-DB2-Contract-No (Ind-WS)                    14160000
+                                         =     FK-TFMC-Contr-No         14170000
+                     and WS-DB2-CA-Currency (Ind-WS)                    14180001
+                                         =     FK-TFCA-Currency         14190001
+                     and WS-DB2-PA-Seq-No (Ind-WS)                      14200001
+                                         =     FK-TFPA-Seq-No           14210001
+                     and WS-DB2-Role-Type (Ind-WS)                      14220001
+                                         =     FK-KFTY-Role-Type )      14230003
+           End-Perform                                                  14240000
+      *                                                                 14250000
+           Evaluate True                                                14260000
+             When Ind-WS                 >     W-Max-Occ-WS-Tab         14270000
+               Continue                                                 14280000
+      *                                                                 14290000
+             When other                                                 14300000
+               Initialize                      WS-DB2-Row (Ind-WS)      14310000
+      *                                                                 14320000
+           End-Evaluate                                                 14330000
+      *                                                                 14340000
+           .                                                            14350000
+      *################################################################*14360000
+       N100-Fetch-Fin-Inst-ID            Section.                       14370000
+      *                                                                 14380000
+           Move  W-Fin-Inst-No (1:4)     To    W-Tmp-Konsern-Nr         14390001
+      *                                                                 14400001
+           If  Not R5879010-Versjon                                     14410000
+           or  R5879010-In-Konsernnr     Not = W-Tmp-Konsern-Nr         14420001
+      *                                                                 14430000
+               Initialize                      R5879010-Konsern         14440000
+               Set   R5879010-Versjon    To    True                     14450000
+               Set   R5879010-In-Select  To    True                     14460000
+               Move  W-Tmp-Konsern-Nr    To    R5879010-In-Konsernnr    14470001
+               Call  'F5879010'          Using R5879010-Konsern         14480000
+                                               R7919999-Error-Area      14490000
+               End-Call                                                 14500000
+               If  Not R7919999-Return-OK                               14510000
+                   Move  'N101'          To    R7919999-Paragraph       14520000
+                   Perform Z900-Abend                                   14530000
+               End-If                                                   14540000
+      *                                                                 14550000
+           End-If                                                       14560000
+      *                                                                 14570000
+           Move  R5879010-Ut-KO-Konsern-Id                              14580000
+                                         To    W-Fin-Inst-ID            14590000
+      *                                                                 14600000
+           .                                                            14610000
+      *################################################################*14620000
+       N200-Fetch-Fin-Inst-No            Section.                       14630000
+      *                                                                 14640000
+           If  Not R5879010-Versjon                                     14650000
+           or  R5879010-In-Konsern-ID    Not = W-Fin-Inst-ID            14660000
+      *                                                                 14670000
+               Initialize                      R5879010-Konsern         14680000
+               Set   R5879010-Versjon    To    True                     14690000
+               Set   R5879010-In-Select  To    True                     14700000
+               Move  W-Fin-Inst-ID       To    R5879010-In-Konsern-ID   14710000
+               Call  'F5879010'          Using R5879010-Konsern         14720000
+                                               R7919999-Error-Area      14730000
+               End-Call                                                 14740000
+               If  Not R7919999-Return-OK                               14750000
+                   Move  'N201'          To    R7919999-Paragraph       14760000
+                   Perform Z900-Abend                                   14770000
+               End-If                                                   14780000
+      *                                                                 14790000
+           End-If                                                       14800000
+      *                                                                 14810000
+           Move  R5879010-Ut-KO-Konsernnummer                           14820000
+                                         To    W-Tmp-Konsern-Nr         14830001
+           Move  W-Tmp-Konsern-Nr        To    W-Fin-Inst-No            14840001
+      *                                                                 14850000
+           .                                                            14860000
+      *################################################################*14870000
+       ZI00-Conv-Input-Version           Section.                       14880001
+      *                                                                 14890000
+      * Version control.                                                14900000
+      * If conversion is needed, we call the conversion module.         14910000
+      *                                                                 14920000
+           Set   R115ITP0-Version        To    True                     14930000
+           Move  Length                  Of    R115ITP0-Tast-Part       14940000
+                                         To    W-IO-Length              14950000
+      *                                                                 14960000
+           Evaluate True                                                14970000
+             When L-Ext-IO-Area (1:8)    =     R115ITP0-Version-No      14980000
+             and  Length                 Of    L-Ext-IO-Area            14990000
+                                         Not < W-IO-Length              15000000
+               Move  L-Ext-IO-Area (1:W-IO-Length)                      15010000
+                                         To    W-Int-IO-Area            15020000
+      *                                                                 15030000
+             When Other                                                 15040000
+               Call  'F115I999'                                         15050000
+                   Using By Content      'F115ITP0 '                    15060000
+                                         'INPUT '                       15070000
+                         By Reference    L-Ext-IO-Area                  15080000
+                                         W-Int-IO-Area                  15090000
+                                         R7919999-Error-Area            15100000
+               End-Call                                                 15110000
+      *                                                                 15120000
+               If  R7919999-Return-Abend                                15130000
+                   Move  'ZI03'          To    R7919999-Paragraph       15140000
+                   Perform Z900-Abend                                   15150000
+               End-If                                                   15160000
+      *                                                                 15170000
+           End-Evaluate                                                 15180000
+      *                                                                 15190000
+           .                                                            15200000
+      *################################################################*15210000
+       ZO00-Conv-Output-Version          Section.                       15220001
+      *                                                                 15230000
+      * Version control.                                                15240000
+      * If conversion is needed, we call the conversion module.         15250000
+      *                                                                 15260000
+           Evaluate True                                                15270000
+             When L-Ext-IO-Area (1:8)    =     R115ITP0-Version-No      15280000
+             and  Length                 Of    L-Ext-IO-Area            15290000
+                                         Not < W-IO-Length              15300000
+               Move  W-Int-IO-Area       To    L-Ext-IO-Area            15310000
+                                                         (1:W-IO-Length)15320000
+      *                                                                 15330000
+             When Other                                                 15340000
+               Call  'F115I999'                                         15350000
+                   Using By Content      'F115ITP0 '                    15360000
+                                         'OUTPUT '                      15370000
+                         By Reference    L-Ext-IO-Area                  15380000
+                                         W-Int-IO-Area                  15390000
+                                         R7919999-Error-Area            15400000
+               End-Call                                                 15410000
+      *                                                                 15420000
+               If  R7919999-Return-Abend                                15430000
+                   Move  'ZO01'          To    R7919999-Paragraph       15440000
+                   Perform Z900-Abend                                   15450000
+               End-If                                                   15460000
+      *                                                                 15470000
+           End-Evaluate                                                 15480000
+      *                                                                 15490000
+           .                                                            15500000
+      *################################################################*15510000
+       Z000-Error-Message                Section.                       15520000
+      *                                                                 15530000
+           Set   R7918030-Version        To    True                     15540000
+      *                                                                 15550000
+           Move  'TF'                    To    R7918030-In-System-ID    15560000
+           Move  R115X000-Fin-Inst-No    To    R7918030-In-Fin-Inst-No  15570000
+           Move  R115X000-FI-Language-639-1                             15580000
+                                         To    R7918030-In-Language     15590000
+           If  R115X000-Trace-On                                        15600001
+               Set   R7918030-In-Log-Yes To    True                     15610001
+           End-If                                                       15620001
+      *                                                                 15630000
+           Call  'F7918030'              Using R7918030-ErrorMessage    15640000
+           End-Call                                                     15650000
+      *                                                                 15660000
+           Move  R7918030-Out-MessageText                               15670000
+                                         To    R7919999-Message         15680000
+      *                                                                 15690000
+           .                                                            15700000
+      *################################################################*15710000
+       Z900-Abend                        Section.                       15720000
+      *                                                                 15730000
+           If  R7919999-Return-Code      Not   Numeric                  15740000
+           or  Not R7919999-Return-Abend                                15750000
+               Move  +0                  To    R7919999-Module-Ind      15760000
+           End-If                                                       15770000
+      *                                                                 15780000
+           Add   +1                      To    R7919999-Module-Ind      15790000
+      *                                                                 15800000
+           If  R7919999-Module-Ind       Not >                          15810000
+                             ( Length    Of    R7919999-Module-Tab      15820000
+                             / Length    Of    R7919999-Module-Element )15830000
+               Move  'F115ITP0'          To    R7919999-Module-Name     15840000
+                                                   (R7919999-Module-Ind)15850000
+               Move  R7919999-Paragraph  To    R7919999-Module-Para     15860000
+                                                   (R7919999-Module-Ind)15870000
+           End-If                                                       15880000
+      *                                                                 15890000
+           Set   R7919999-Return-Abend   To    TRUE                     15900000
+      *                                                                 15910000
+           Goback.                                                      15920000

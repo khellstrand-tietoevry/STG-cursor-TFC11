@@ -1,0 +1,52 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD Trade Finance                                                00030000
+      *                                                                 00040000
+      * Copy-area R115L280.                                             00050005
+      *                                                                 00060000
+      * Les Konto. Returnerer med OK og kontoens valutasort dersom      00070005
+      * det er lov å foreta direkte posteringer på. Dvs ikke KKS HVD    00460000
+      * ,SUM, eller at kontoen er sperret. I disse tilfellene           00460000
+      * returneres feilmelding.                                         00460000
+      *                                                                 00460000
+      *################################################################*00470000
+      * Date ! Si! Change description                            ! 3A ! 00480000
+      *------+---+-----------------------------------------------+----+ 00490000
+      *160511!NDL! returnerer kontoens disponible saldo          !LG10! 00500003
+      *------+---+-----------------------------------------------+----+ 00490000
+      *140799!LG ! New copy area                                 !LG10! 00500003
+      *################################################################*00510000
+      *                                                                 00520000
+         03  R115L280-Find-Currency.                                    00530005
+      *                                                                 00540000
+           05  R115L280-Version-No              Pic  X(08).             00550005
+             88  R115L280-Version                    Value '19990714'.  00560005
+      *                                                                 00570000
+      *----------------------------------------------------------------*00580000
+      *                                                                 00690020
+           05  R115L280-Qualification.                                  00690100
+      *                                                                 00690200
+             10  R115L280-Header-Info.
+               15  R115L280-Function            Pic  x(08).
+               15  R115L280-Medium              Pic  x(02).
+      *
+             10  R115L280-In-Key.                                       00860005
+      *                                                                 00870001
+               15  R115L280-In-Fin-Inst-No      Pic  X(18).             00890005
+               15  Filler           Redefines   R115L280-In-Fin-Inst-No.
+                   20  R115L280-Inst-No         Pic   9(04).
+                   20  Filler                   Pic   9(14).
+               15  R115L280-In-Account-No       Pic  S9(11)  Comp-3.    00890005
+               15  R115L280-In-Date             Pic  9(08).
+      *                                                                 01140000
+      *----------------------------------------------------------------*01150000
+      *                                                                 01160000
+           05  R115L280-Data.                                           01170005
+      *                                                                 01180000
+             10  R115L280-Currency              Pic  X(03).             01330006
+             10  R115L280-Exchange-Rate         Pic S9(04)V9(05).       01330006
+             10  R115L280-Customer-Id           Pic S9(11)    Comp-3.   01330006
+             10  R115L280-Customer-No           Pic S9(11)    Comp-3.   01330006
+      *                                                                 01340000
+             10  R115L280-Balance               Pic S9(13)V99 Comp-3.   01330006
+      *                                                                 01340000

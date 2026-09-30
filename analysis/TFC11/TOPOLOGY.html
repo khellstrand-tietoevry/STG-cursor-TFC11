@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TFC11 topology</title>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+  </script>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 960px; }
+    table { border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.7rem; text-align: left; }
+    pre { background: #f4f4f4; padding: 1rem; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>TFC11 — Call topology</h1>
+  <p>Generated 2026-09-30 · Legacy: <code>legacy/STG/TFC11</code></p>
+  <table>
+    <tr><th>Programs in repo</th><td>16</td></tr>
+    <tr><th>CALL edges (manifest)</th><td>253</td></tr>
+    <tr><th>External CALL targets (no .src)</th><td>51</td></tr>
+    <tr><th>Unresolved COPY references</th><td>89</td></tr>
+  </table>
+  <h2>Entry flow (simplified)</h2>
+  <pre class="mermaid">
+graph TD
+  EP[FTFCH110] --> K[FTFCK110]
+  EP --> L[FTFCL110]
+  K --> L050[F115L050]
+  L --> ICU0[F115ICU0]
+  L --> IMC0[F115IMC0]
+  </pre>
+  <p>Machine-readable graph: <code>topology.json</code>, <code>call-graph.mmd</code>.</p>
+</body>
+</html>

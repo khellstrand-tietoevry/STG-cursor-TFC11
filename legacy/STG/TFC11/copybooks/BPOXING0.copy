@@ -1,0 +1,8 @@
+           03  BPOXING0-PO-NC-NOR-GEO.
+             05 BPOXING0-Version-No Pic X(08).
+                88 BPOXING0-Version Value '00000001'.
+             05 BPOXING0-Eye Pic X(08).
+                88 BPOXING0-Eyecatcher Value 'BPOXING0'.
+             05 BPOXING0-Action Pic X(16).
+                88 BPOXING0-In-Select Value 'SELECT'.
+             05 BPOXING0-In-PONG-GEO-CODE Pic X(10).

@@ -1,0 +1,11 @@
+           03  BPOXINS0-PO-NC-NOR-SECTOR.
+             05 BPOXINS0-Version-No Pic X(08).
+                88 BPOXINS0-Version Value '00000001'.
+             05 BPOXINS0-Eye Pic X(08).
+                88 BPOXINS0-Eyecatcher Value 'BPOXINS0'.
+             05 BPOXINS0-Action Pic X(16).
+                88 BPOXINS0-In-Select Value 'SELECT'.
+             05 BPOXINS0-In-PONS-SECTOR-CODE Pic 9(04).
+             05 BPOXINS0-In-PONS-VAL-FROM-DT Pic 9(08).
+             05 BPOXINS0-Category Pic X(01).
+                88 BPOXINS0-Cat-Fin-Bus-Banks Value 'Y'.

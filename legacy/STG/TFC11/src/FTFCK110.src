@@ -1,0 +1,2163 @@
+      *<META FTFCK110>                                                  00010068
+       Identification Division.                                         00020068
+       Program-Id. FTFCK110.                                            00030068
+       Author. Z3216TW                                                  00040068
+      *################################################################*00050068
+      * Servo - logic-level / K-module - Control module.               *00060068
+      * Uses STG, in accordance with new Servo Standards.              *00070068
+      *                                                                *00080068
+      * TFU11 / 01 - Forandre Parter Inkasso                           *00090068
+      *                                                                *00100068
+      * Code between <META> and </META> tags must not be modified. Do  *00110068
+      * your modifications in the specified user sections !            *00120068
+      *                                                                *00130068
+      *################################################################*00140068
+      * Date ! Si! Type of change                                ! 3A !*00150068
+      *------+---+-----------------------------------------------+----+*00160068
+      *170811!NDL!Erstatter F221IAC0 med BPOXING0             PRO015254 00170076
+      *251001!NDL!E320 moved to FTFCL110                         !LO18!*00171068
+      *231001!NDL!Endre AVAIL ved ACCEPT-ILC                     !LO18!*00180068
+      *010212!NDL!Fjernet kall til F1781910                      !LT12!*00190068
+      *010111!NDL!Bic-part, fjernet igjen 12.01.01               !LT12!*00200068
+      *990324!&&&!New Module                                     !&&&&!*00210068
+      *################################################################*00220068
+       Environment Division.                                            00230068
+       Configuration Section.                                           00240068
+       Special-Names.                                                   00250068
+           Decimal-Point Is Comma.                                      00260068
+      *################################################################*00270068
+       Data Division.                                                   00280068
+       Working-Storage Section.                                         00290068
+      *                                                                 00300068
+       01  W-Work-Fields.                                               00310068
+      *                                                                 00320068
+      *<META WA-START>                                                  00330068
+           05  Filler                     Pic   X(08) Value 'WA-START'. 00340068
+      *</META>                                                          00350068
+      *                                                                 00360068
+      *    User work variables can be placed here                       00370068
+           05   WC-PROGRAM-ID             Pic  X(08)  Value 'FTFCK110'. 00370171
+*                                                                       00371071
+           05  Ws-Beneb                   Pic   X(01).                  00380068
+               88  Wb-Beneb-Found                      Value 'Y'.       00390068
+               88  Wb-Beneb-Not-Found                  Value 'N'.       00400068
+           05  Ws-Remit                   Pic   X(01).                  00410068
+               88  Wb-Remit-Found                      Value 'Y'.       00420068
+               88  Wb-Remit-Not-Found                  Value 'N'.       00430068
+           05  Ws-Part-Amount             Pic   X(01).                  00440068
+               88  Wb-PA-Settled                       Value 'Y'.       00450068
+               88  Wb-PA-Not-Settled                   Value 'N'.       00460068
+           05  Ws-Part-Amount             Pic   X(01).                  00470068
+               88  Wb-Issui-Acc-Found                  Value 'Y'.       00480068
+               88  Wb-Issui-Acc-Not-Found              Value 'N'.       00490068
+      *                                                                 00500068
+           05  Wb-Role-Type               Pic   X(05).                  00510068
+               88  Wb-Issui                            Value 'ISSUI'.   00520068
+               88  Wb-Avail                            Value 'AVAIL'.   00530068
+               88  Wb-Advis                            Value 'ADVIS'.   00540068
+               88  Wb-Reimb                            Value 'REIMB'.   00550068
+               88  Wb-Custm                            Value 'CUSTM'.   00560068
+               88  Wb-Remit                            Value 'REMIT'.   00570068
+               88  Wb-Decl                             Value 'DECL '.   00580068
+      *                                                                 00590068
+           05  Ws-Max-Occ-Item-Tab        Pic  S9(11)            Comp-3.00600068
+           05  Ws-Idx                     Pic   9(03).                  00610068
+      *                                                                 00620068
+           05  Ws-Fin-Inst-No             Pic   X(18).                  00630068
+           05  Filler               Redefines   Ws-Fin-Inst-No.         00640068
+               10  Ws-Fin-Inst-No-Num     Pic   9(04).                  00650068
+               10  Filler                 Pic   9(14).                  00660068
+      *                                                                 00670068
+           05  Ws-Account                 Pic   X(35).                  00680068
+           05  Filler               Redefines   Ws-Account.             00690068
+               10  Ws-Account-No          Pic   9(11).                  00700068
+               10  Filler                 Pic   X(24).                  00710068
+      *                                                                 00720068
+      *                                                                 00730068
+      *<META WA-STOP>                                                   00740068
+           05  Filler                     Pic   X(08) Value 'WA-STOP '. 00750068
+      *</META>                                                          00760068
+      *                                                                 00770068
+      *----------------------------------------------------------------*00780068
+      *                                                                 00790068
+      * Misc. copy books :                                              00800068
+      *                                                                 00810068
+      *<META MISC-COPY1>                                                00820068
+           Copy R7919040.                                               00830068
+      *</META>                                                          00840068
+      *01  Filler.                                                      00850068
+      *                                                                 00860068
+      *                                                                 00870068
+      *<META MISC-COPY2>                                                00880068
+      *</META>                                                          00890068
+      *                                                                 00900068
+       01  Filler.                                                      00910068
+      *    Place your copybooks below here                              00920068
+           Copy R115IPA0.                                               00930068
+           Copy R115IRP0.                                               00940068
+           Copy R115ISR0.                                               00950068
+           Copy R115ISC0.                                               00960068
+           Copy R116IBI0.                                               00970068
+      *                                                                 00980068
+           Copy R115L050.                                               00990068
+           Copy R115L280.                                               01000068
+      *                                                                 01010068
+      ***  Copy R1781910.                                               01020068
+           COPY R791I060.                                               01030068
+           COPY BPOXING0.                                               01040068
+      *    COPY R221IAC0.                                               01040168
+      *                                                                 01041068
+       01  ERROR-HANDLING.                                              01042068
+           COPY R791ERR0.                                               01043068
+           COPY R791ERRX.                                               01044068
+      *                                                                 01050068
+      *                                                                 01060068
+      *################################################################*01070068
+       Linkage Section.                                                 01080068
+      *                                                                 01090068
+      * Fixed header from STG                                           01100068
+      *                                                                 01110068
+       01  L-STG-Header.                                                01120068
+           Copy R400CH02.                                               01130068
+      *                                                                 01140068
+      * Function data                                                   01150068
+      *                                                                 01160068
+       01  L-Data.                                                      01170068
+           Copy RTFCE110.                                               01180068
+      *                                                                 01190068
+      * Standard error area                                             01200068
+      *                                                                 01210068
+       Copy  R7919999.                                                  01220068
+      *                                                                 01230068
+      *################################################################*01240068
+       Procedure Division                Using L-Stg-Header             01250068
+                                               L-Data                   01260068
+                                               R7919999-Error.          01270068
+      *                                                                 01280068
+      *<META A000-MAIN>                                                 01290068
+       A000-Main                         Section.                       01300068
+      *                                                                 01310068
+           Perform B000-Initialize                                      01320068
+      *                                                                 01330068
+           Perform C000-Input-Control                                   01340068
+           Perform D000-Prepare-DB-Read                                 01350068
+           Perform E000-Control-Base                                    01360068
+           .                                                            01370068
+      *                                                                 01380068
+       A000-Main-Ex.                                                    01390068
+           Goback.                                                      01400068
+      *</META>                                                          01410068
+                                                                        01420068
+      *################################################################*01430068
+      * Initialize necessary work fields                               *01440068
+      *                                                                *01450068
+      *----------------------------------------------------------------*01460068
+      *<META B000-INITIAIZE>                                            01470068
+       B000-Initialize                   Section.                       01480068
+      *                                                                 01490068
+           Set  R7919999-Retur-Ok        To    True                     01500068
+           Initialize                          W-Work-Fields            01510068
+      *</META>                                                          01520068
+      *                                                                 01530068
+      *    User initialization should be placed here                    01540068
+      *                                                                 01550068
+      *    Maximum number of occurences in ouput table.                 01560068
+           Compute  Ws-Max-Occ-Item-Tab                                 01570068
+               =  ( Length               Of    RTFCE110-I-Type-G        01580068
+                  - Length               Of    RTFCE110-I-Type-A )      01590068
+               /    Length               Of    RTFCE110-I-Type-T        01600068
+           End-Compute                                                  01610068
+      *                                                                 01620068
+           .                                                            01630068
+      *                                                                 01640068
+      *<META B000-INITIALIZE-EX>                                        01650068
+       B000-Initialize-Ex.                                              01660068
+           Exit.                                                        01670068
+      *</META>                                                          01680068
+                                                                        01690068
+      *################################################################*01700068
+      * Perform the required input controls                            *01710068
+      *                                                                *01720068
+      *----------------------------------------------------------------*01730068
+      *<META C000-INPUT-CONTROL>                                        01740068
+       C000-Input-Control                Section.                       01750068
+      *                                                                 01760068
+           Perform C110-Mandatory-Fields-UB                             01770068
+           Perform C100-Mandatory-Fields                                01780068
+           Perform C120-Mandatory-Fields-UA                             01790068
+           Perform C210-Out-Fields-UB                                   01800068
+           Perform C200-Out-Fields                                      01810068
+           Perform C220-Out-Fields-UA                                   01820068
+           Perform C310-Permitted-Values-UB                             01830068
+           Perform C300-Permitted-Values                                01840068
+           Perform C320-Permitted-Values-UA                             01850068
+           Perform C410-Default-Values-UB                               01860068
+           Perform C400-Default-Values                                  01870068
+           Perform C420-Default-Values-UA                               01880068
+           Perform C510-Dependencies-UB                                 01890068
+           Perform C500-Dependencies                                    01900068
+           Perform C520-Dependencies-UA                                 01910068
+           .                                                            01920068
+      *                                                                 01930068
+       C000-Input-Control-Ex.                                           01940068
+           Exit.                                                        01950068
+      *</META>                                                          01960068
+                                                                        01970068
+      *################################################################*01980068
+      * We have to make sure we have all required input fields         *01990068
+      *                                                                *02000068
+      *----------------------------------------------------------------*02010068
+       C100-Mandatory-Fields             Section.                       02020068
+      *                                                                 02030068
+      *  This code is maintained by the codegenerator. Any user changes 02040068
+      *  between the META tags will be lost. Any user code should be    02050068
+      *  placed in the C110.... or C120..... sections                   02060068
+      *                                                                 02070068
+      *<META C100-MANDATORY-FIELDS>                                     02080068
+      *                                                                 02090068
+      *     Fin-Inst-No must be present                                 02100068
+      *                                                                 02110068
+           If  RTFCE110-I-Fin-Inst-No-I  Not = 'U'                      02120068
+               Move  'F'                 To    RTFCE110-I-Fin-Inst-No-O 02130068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  02140068
+               Move  'Fin-Inst-No'       To    R400CH01-Message-Data(1) 02150068
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code    02160068
+               Perform  Z700-Error-AE                                   02170068
+           End-If                                                       02180068
+      *                                                                 02190068
+      *     Kontrakt-Type must be present                               02200068
+      *                                                                 02210068
+           If  RTFCE110-I-Contract-Type-I                               02220068
+                                         Not = 'U'                      02230068
+               Move  'F'                 To                             02240068
+                                         RTFCE110-I-Contract-Type-O     02250068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  02260068
+               Move  'Kontrakt-Type'     To    R400CH01-Message-Data(1) 02270068
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code    02280068
+               Perform  Z700-Error-AE                                   02290068
+           End-If                                                       02300068
+      *                                                                 02310068
+      *     Kontrakt-Nr must be present                                 02320068
+      *                                                                 02330068
+           If  RTFCE110-I-Contract-No-I  Not = 'U'                      02340068
+               Move  'F'                 To    RTFCE110-I-Contract-No-O 02350068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  02360068
+               Move  'Kontrakt-Nr'       To    R400CH01-Message-Data(1) 02370068
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code    02380068
+               Perform  Z700-Error-AE                                   02390068
+           End-If                                                       02400068
+      *                                                                 02410068
+      *     Sist-Lagret-Dato must be present                            02420068
+      *                                                                 02430068
+           If  RTFCE110-B-Last-Saved-Date-I                             02440068
+                                         Not = 'U'                      02450068
+               Move  'F'                 To                             02460068
+                                         RTFCE110-B-Last-Saved-Date-O   02470068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  02480068
+               Move  'Sist-Lagret-Dato'  To    R400CH01-Message-Data(1) 02490068
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code    02500068
+               Perform  Z700-Error-AE                                   02510068
+           End-If                                                       02520068
+      *                                                                 02530068
+      *     Operasjons-Art must be present                              02540068
+      *                                                                 02550068
+           If  RTFCE110-I-Operation-Type-I                              02560068
+                                         Not = 'U'                      02570068
+               Move  'F'                 To                             02580068
+                                         RTFCE110-I-Operation-Type-O    02590068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  02600068
+               Move  'Operasjons-Art'    To    R400CH01-Message-Data(1) 02610068
+               Move  'GL-MISSING-FIELD&' To    R400CH01-Message-Code    02620068
+               Perform  Z700-Error-AE                                   02630068
+           End-If                                                       02640068
+      *</META>                                                          02650068
+      *                                                                 02660068
+           Continue                                                     02670068
+           .                                                            02680068
+      *                                                                 02690068
+      *<META C100-MANDATORY-FIELDS-EX>                                  02700068
+       C100-Mandatory-Fields-Ex.                                        02710068
+           Exit.                                                        02720068
+      *</META>                                                          02730068
+                                                                        02740068
+      *################################################################*02750068
+      * We have to make sure we have all required input fields         *02760068
+      * (User Code to execute before generated code)                   *02770068
+      *----------------------------------------------------------------*02780068
+      *<META C110-MANDATORY-FIELDS-UB>                                  02790068
+       C110-Mandatory-Fields-UB          Section.                       02800068
+      *                                                                 02810068
+      *</META>                                                          02820068
+      *                                                                 02830068
+           Continue                                                     02840068
+      *                                                                 02850068
+           .                                                            02860068
+      *                                                                 02870068
+      *<META C110-MANDATORY-FIELDS-UB-EX>                               02880068
+       C110-Mandatory-Fields-UB-Ex.                                     02890068
+           Exit.                                                        02900068
+      *</META>                                                          02910068
+                                                                        02920068
+      *################################################################*02930068
+      * We have to make sure we have all required input fields         *02940068
+      * (User Code to execute after generated code)                    *02950068
+      *----------------------------------------------------------------*02960068
+      *<META C120-MANDATORY-FIELDS-UA>                                  02970068
+       C120-Mandatory-Fields-UA          Section.                       02980068
+      *                                                                 02990068
+      *</META>                                                          03000068
+      *                                                                 03010068
+           Move  1                       To    Ws-Idx                   03020068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   03030068
+                                                                        03040068
+               Evaluate True                                            03050068
+                                                                        03060068
+                 When RTFCE110-I-Selected-I    (Ws-Idx)     = 'U'       03070068
+                  And RTFCE110-I-Type-I        (Ws-Idx) Not = 'U'       03080068
+                                                                        03090068
+                   If  RTFCE110-I-Selected-D (Ws-Idx) = 'Y'             03100068
+                       Move  'F'         To    RTFCE110-I-Type-I        03110068
+                                                              (Ws-Idx)  03120068
+                       Move  'TF-SY-TYPE-MISSING'                       03130068
+                                         To    R400CH01-Message-Code    03140068
+                       Perform  Z700-Error-AE                           03150068
+                   End-If                                               03160068
+                                                                        03170068
+               End-Evaluate                                             03180068
+                                                                        03190068
+               Add  1                    To    Ws-Idx                   03200068
+                                                                        03210068
+           End-Perform                                                  03220068
+      *                                                                 03230068
+           .                                                            03240068
+      *                                                                 03250068
+      *<META C120-MANDATORY-FIELDS-UA-EX>                               03260068
+       C120-Mandatory-Fields-UA-Ex.                                     03270068
+           Exit.                                                        03280068
+      *</META>                                                          03290068
+                                                                        03300068
+      *################################################################*03310068
+      * Output fields can not be part of the input data                *03320068
+      *                                                                *03330068
+      *----------------------------------------------------------------*03340068
+       C200-Out-Fields                   Section.                       03350068
+      *                                                                 03360068
+      *  This code is maintained by the codegenerator. Any user changes 03370068
+      *  between the META tags will be lost. Any user code should be    03380068
+      *  placed in the C210... or C220.... sections.                    03390068
+      *                                                                 03400068
+      *<META C200-OUT-FIELDS>                                           03410068
+      *</META>                                                          03420068
+           Continue                                                     03430068
+           .                                                            03440068
+      *                                                                 03450068
+      *<META C200-OUT-FIELDS-EX>                                        03460068
+       C200-Out-Fields-Ex.                                              03470068
+           Exit.                                                        03480068
+      *</META>                                                          03490068
+                                                                        03500068
+      *################################################################*03510068
+      * Output fields can not be part of the input data                *03520068
+      * (User Code to execute before generated code)                   *03530068
+      *----------------------------------------------------------------*03540068
+      *<META C210-OUT-FIELDS-UB>                                        03550068
+       C210-Out-Fields-UB                Section.                       03560068
+      *                                                                 03570068
+      *</META>                                                          03580068
+           Continue                                                     03590068
+           .                                                            03600068
+      *                                                                 03610068
+      *<META C210-OUT-FIELDS-UB-EX>                                     03620068
+       C210-Out-Fields-UB-Ex.                                           03630068
+           Exit.                                                        03640068
+      *</META>                                                          03650068
+                                                                        03660068
+      *################################################################*03670068
+      * Output fields can not be part of the input data                *03680068
+      * (User Code to execute after  generated code)                   *03690068
+      *----------------------------------------------------------------*03700068
+      *<META C220-OUT-FIELDS-UA>                                        03710068
+       C220-Out-Fields-UA                Section.                       03720068
+      *                                                                 03730068
+      *</META>                                                          03740068
+      *                                                                 03750068
+           Continue                                                     03760068
+      *                                                                 03770068
+           .                                                            03780068
+      *                                                                 03790068
+      *<META C220-OUT-FIELDS-UA-EX>                                     03800068
+       C220-Out-Fields-UA-Ex.                                           03810068
+           Exit.                                                        03820068
+      *</META>                                                          03830068
+                                                                        03840068
+      *################################################################*03850068
+      * Test permitted values                                          *03860068
+      *                                                                *03870068
+      *----------------------------------------------------------------*03880068
+       C300-Permitted-Values             Section.                       03890068
+      *                                                                 03900068
+      *  This code is maintained by the codegenerator. Any user changes 03910068
+      *  between the META tags will be lost. Any user code should be    03920068
+      *  placed in the C310-... or C320... sections                     03930068
+      *                                                                 03940068
+      *<META C300-PERMITTED-VALUES>                                     03950068
+      *                                                                 03960068
+      *    Kontrakt-Nr must be numeric if present.                      03970068
+      *                                                                 03980068
+           Evaluate True                                                03990068
+             When  RTFCE110-I-Contract-No-I                             04000068
+                                         Not = 'U'                      04010068
+               Continue                                                 04020068
+             When  RTFCE110-I-Contract-No-D                             04030068
+                                         Not Numeric                    04040068
+               Move  'F'                 To    RTFCE110-I-Contract-No-O 04050068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  04060068
+               Move  'Kontrakt-Nr'       To    R400CH01-Message-Data(1) 04070068
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code    04080068
+               Perform  Z700-Error-AE                                   04090068
+           End-Evaluate                                                 04100068
+      *                                                                 04110068
+      *    Rate-Nr must be numeric if present.                          04120068
+      *                                                                 04130068
+           Evaluate True                                                04140068
+             When  RTFCE110-I-Part-Amount-No-I                          04150068
+                                         Not = 'U'                      04160068
+               Continue                                                 04170068
+             When  RTFCE110-I-Part-Amount-No-D                          04180068
+                                         Not Numeric                    04190068
+               Move  'F'                 To                             04200068
+                                         RTFCE110-I-Part-Amount-No-O    04210068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  04220068
+               Move  'Rate-Nr'           To    R400CH01-Message-Data(1) 04230068
+               Move  'GL-UGYLDIG-VERDI&' To    R400CH01-Message-Code    04240068
+               Perform  Z700-Error-AE                                   04250068
+           End-Evaluate                                                 04260068
+      *                                                                 04270068
+      *    Kunde-Id must be numeric if present.                         04280068
+      *                                                                 04290068
+           Perform                                                      04300068
+              Varying  Tally             From 1 By 1                    04310068
+              Until    Tally             >     RTFCE110-I-Customer-Id-A 04320068
+              Evaluate True                                             04330068
+                When  RTFCE110-I-Customer-Id-I(Tally)                   04340068
+                                         Not = 'U'                      04350068
+                  Continue                                              04360068
+                When  RTFCE110-I-Customer-Id-D(Tally)                   04370068
+                                         Not Numeric                    04380068
+                  Move  'F'              To    RTFCE110-I-Customer-Id-O 04390068
+                                               (Tally)                  04400068
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)  04410068
+                  Move  'Kunde-Id'       To    R400CH01-Message-Data(1) 04420068
+                  Move  'GL-UGYLDIG-VERDI&'                             04430068
+                                         To    R400CH01-Message-Code    04440068
+                  Perform  Z700-Error-AE                                04450068
+              End-Evaluate                                              04460068
+           End-Perform                                                  04470068
+      *                                                                 04480068
+      *    Kundenr must be numeric if present.                          04490068
+      *                                                                 04500068
+           Perform                                                      04510068
+              Varying  Tally             From 1 By 1                    04520068
+              Until    Tally             >     RTFCE110-I-Customer-No-A 04530068
+              Evaluate True                                             04540068
+                When  RTFCE110-I-Customer-No-I(Tally)                   04550068
+                                         Not = 'U'                      04560068
+                  Continue                                              04570068
+                When  RTFCE110-I-Customer-No-D(Tally)                   04580068
+                                         Not Numeric                    04590068
+                  Move  'F'              To    RTFCE110-I-Customer-No-O 04600068
+                                               (Tally)                  04610068
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)  04620068
+                  Move  'Kundenr'        To    R400CH01-Message-Data(1) 04630068
+                  Move  'GL-UGYLDIG-VERDI&'                             04640068
+                                         To    R400CH01-Message-Code    04650068
+                  Perform  Z700-Error-AE                                04660068
+              End-Evaluate                                              04670068
+           End-Perform                                                  04680068
+      *                                                                 04690068
+      *    Geo-Kode must be numeric if present.                         04700068
+      *                                                                 04710068
+           Perform                                                      04720068
+              Varying  Tally             From 1 By 1                    04730068
+              Until    Tally             >     RTFCE110-I-Geo-Code-A    04740068
+              Evaluate True                                             04750068
+                When  RTFCE110-I-Geo-Code-I(Tally)                      04760068
+                                         Not = 'U'                      04770068
+                  Continue                                              04780068
+                When  RTFCE110-I-Geo-Code-D(Tally)                      04790068
+                                         Not Numeric                    04800068
+                  Move  'F'              To    RTFCE110-I-Geo-Code-O    04810068
+                                               (Tally)                  04820068
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)  04830068
+                  Move  'Geo-Kode'       To    R400CH01-Message-Data(1) 04840068
+                  Move  'GL-UGYLDIG-VERDI&'                             04850068
+                                         To    R400CH01-Message-Code    04860068
+                  Perform  Z700-Error-AE                                04870068
+              End-Evaluate                                              04880068
+           End-Perform                                                  04890068
+      *                                                                 04900068
+      *    Sektor-Kode must be numeric if present.                      04910068
+      *                                                                 04920068
+           Perform                                                      04930068
+              Varying  Tally             From 1 By 1                    04940068
+              Until    Tally             >     RTFCE110-I-Sector-Code-A 04950068
+              Evaluate True                                             04960068
+                When  RTFCE110-I-Sector-Code-I(Tally)                   04970068
+                                         Not = 'U'                      04980068
+                  Continue                                              04990068
+                When  RTFCE110-I-Sector-Code-D(Tally)                   05000068
+                                         Not Numeric                    05010068
+                  Move  'F'              To    RTFCE110-I-Sector-Code-O 05020068
+                                               (Tally)                  05030068
+                  Move  'FELT1'          To    R400CH01-Message-Key(1)  05040068
+                  Move  'Sektor-Kode'    To    R400CH01-Message-Data(1) 05050068
+                  Move  'GL-UGYLDIG-VERDI&'                             05060068
+                                         To    R400CH01-Message-Code    05070068
+                  Perform  Z700-Error-AE                                05080068
+              End-Evaluate                                              05090068
+           End-Perform                                                  05100068
+      *</META>                                                          05110068
+           Continue                                                     05120068
+           .                                                            05130068
+      *                                                                 05140068
+      *<META C300-PERMITTED-VALUES-EX>                                  05150068
+       C300-Permitted-Values-Ex.                                        05160068
+           Exit.                                                        05170068
+      *</META>                                                          05180068
+                                                                        05190068
+      *################################################################*05200068
+      * Test permitted values                                          *05210068
+      * (User Code to execute before generated code)                   *05220068
+      *----------------------------------------------------------------*05230068
+      *<META C310-PERMITTED-VALUES-UB>                                  05240068
+       C310-Permitted-Values-UB          Section.                       05250068
+      *                                                                 05260068
+      *</META>                                                          05270068
+      *                                                                 05280068
+           Continue                                                     05290068
+      *                                                                 05300068
+           .                                                            05310068
+      *                                                                 05320068
+      *<META C310-PERMITTED-VALUES-UB-EX>                               05330068
+       C310-Permitted-Values-UB-Ex.                                     05340068
+           Exit.                                                        05350068
+      *</META>                                                          05360068
+                                                                        05370068
+      *################################################################*05380068
+      * Test permitted values                                          *05390068
+      * (User Code to execute after  generated code)                   *05400068
+      *----------------------------------------------------------------*05410068
+      *<META C320-PERMITTED-VALUES-UA>                                  05420068
+       C320-Permitted-Values-UA          Section.                       05430068
+      *                                                                 05440068
+      *</META>                                                          05450068
+      *                                                                 05460068
+           Move  1                       To    Ws-Idx                   05470068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   05480068
+                                                                        05490068
+      *                                                                 05500068
+      *    Kunde-Id must be numeric if present.                         05510068
+      *                                                                 05520068
+               Evaluate True                                            05530068
+                 When  RTFCE110-I-Customer-Id-I (Ws-Idx)                05540068
+                                         Not = 'U'                      05550068
+                   Continue                                             05560068
+                 When  RTFCE110-I-Customer-Id-D (Ws-Idx)                05570068
+                                         Not Numeric                    05580068
+                   Move  'F'             To    RTFCE110-I-Customer-Id-O 05590068
+                                               (Ws-Idx)                 05600068
+                   Move  'FELT1'         To    R400CH01-Message-Key(1)  05610068
+                   Move  'Kunde-Id'      To    R400CH01-Message-Data(1) 05620068
+                   Move  'GL-UGYLDIG-VERDI&'                            05630068
+                                         To    R400CH01-Message-Code    05640068
+                   Perform  Z700-Error-AE                               05650068
+               End-Evaluate                                             05660068
+                                                                        05670068
+               Add  1                    To    Ws-Idx                   05680068
+           End-Perform                                                  05690068
+      *                                                                 05700068
+      *                                                                 05710068
+           Move  1                       To    Ws-Idx                   05720068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   05730068
+                                                                        05740068
+      *                                                                 05750068
+      *    Custm-Type must be spaces, 'T' or 'C' if present.            05760068
+      *                                                                 05770068
+               Evaluate True                                            05780068
+                 When  RTFCE110-I-Custm-Type-I (Ws-Idx)                 05790068
+                                         Not = 'U'                      05800068
+                   Continue                                             05810068
+                 When  RTFCE110-I-Custm-Type-D (Ws-Idx)                 05820068
+                                         = spaces                       05830068
+                   Continue                                             05840068
+                 When  RTFCE110-I-Custm-Type-D (Ws-Idx)                 05850068
+                                         = 'T'                          05860068
+                   Continue                                             05870068
+      *          When  RTFCE110-I-Custm-Type-D (Ws-Idx)                 05880068
+      *                                  = 'B'                          05890068
+      *            Continue                                             05900068
+                 When  RTFCE110-I-Custm-Type-D (Ws-Idx)                 05910068
+                                         = 'C'                          05920068
+                   Continue                                             05930068
+                 When  Other                                            05940068
+                   Move  'F'             To    RTFCE110-I-Custm-Type-O  05950068
+                                               (Ws-Idx)                 05960068
+                   Move  'FELT1'         To    R400CH01-Message-Key(1)  05970068
+                   Move  'Kunde-Type'    To    R400CH01-Message-Data(1) 05980068
+                   Move  'GL-UGYLDIG-VERDI&'                            05990068
+                                         To    R400CH01-Message-Code    06000068
+                   Perform  Z700-Error-AE                               06010068
+               End-Evaluate                                             06020068
+                                                                        06030068
+               Add  1                    To    Ws-Idx                   06040068
+           End-Perform                                                  06050068
+      *                                                                 06060068
+      *    Kunde-Id must be zero if customer-type = 'T' (tastpart)      06070068
+      *    or 'B' (Bic-part).                                           06080068
+      *                                                                 06090068
+           Move  1                       To    Ws-Idx                   06100068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   06110068
+                                                                        06120068
+           If    RTFCE110-I-Customer-Id-I (Ws-Idx) = 'U'                06130068
+           And   RTFCE110-I-Customer-Id-D (Ws-Idx) > 0                  06140068
+           And   RTFCE110-I-Custm-Type-I (Ws-Idx)  = 'U'                06150068
+           And   RTFCE110-I-Custm-Type-D (Ws-Idx)  = 'T'                06160068
+      *    or    RTFCE110-I-Custm-Type-D (Ws-Idx)  = 'B' )              06170068
+               Move  'F'                 To    RTFCE110-I-Customer-Id-O 06180068
+                                               (Ws-Idx)                 06190068
+               Move  'FELT1'             To    R400CH01-Message-Key(1)  06200068
+               Move  'Kunde-Type'        To    R400CH01-Message-Data(1) 06210068
+               Move  'GL-UGYLDIG-VERDI&'                                06220068
+                                         To    R400CH01-Message-Code    06230068
+               Perform  Z700-Error-AE                                   06240068
+                                                                        06250068
+           End-If                                                       06260068
+           Add  1                        To    Ws-Idx                   06270068
+                                                                        06280068
+           End-Perform                                                  06290068
+      *                                                                 06300068
+      *    Bic-Code can not be zero if customer-type = 'B' (Bic-part)   06310068
+      *                                                                 06320068
+      *    Move  1                       To    Ws-Idx                   06330068
+      *    Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   06340068
+      *                                                                 06350068
+      *    If    RTFCE110-I-Custm-Type-I (Ws-Idx)  = 'U'                06360068
+      *    And   RTFCE110-I-Custm-Type-D (Ws-Idx)  = 'B'                06370068
+      *    And   RTFCE110-I-Bic-Swift-D (Ws-Idx)  = Spaces              06380068
+      *        Move  'F'                 To    RTFCE110-I-Customer-Id-O 06390068
+      *                                        (Ws-Idx)                 06400068
+      *        Move  'FELT1'             To    R400CH01-Message-Key(1)  06410068
+      *        Move  'Swift-Bic'         To    R400CH01-Message-Data(1) 06420068
+      *        Move  'GL-UGYLDIG-VERDI&'                                06430068
+      *                                  To    R400CH01-Message-Code    06440068
+      *        Perform  Z700-Error-AE                                   06450068
+      *                                                                 06460068
+      *    End-If                                                       06470068
+      *    Add  1                        To    Ws-Idx                   06480068
+      *                                                                 06490068
+      *    End-Perform                                                  06500068
+      *                                                                 06510068
+      *    Kunde-Id must exist if present, and it must belong to        06520068
+      *    the current financial institution.                           06530068
+      *                                                                 06540068
+      **fjernet 12.02.01 HB                                             06550068
+      **                                                                06560068
+      **   Move  RTFCE110-I-Fin-Inst-No-D                               06570068
+      **                                 To    Ws-Fin-Inst-No           06580068
+      **   Move  1                       To    Ws-Idx                   06590068
+      **   Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   06600068
+      **                                                                06610068
+      **       If  RTFCE110-I-Selected-I    (Ws-Idx) = 'U'              06620068
+      **       And RTFCE110-I-Selected-D    (Ws-Idx) = 'Y'              06630068
+      **       And RTFCE110-I-Customer-Id-I (Ws-Idx) = 'U'              06640068
+      **       And RTFCE110-I-Customer-Id-D (Ws-Idx) > 0                06650068
+      **           Initialize                  R1781910-Kunde-ID        06660068
+      **           Set   R1781910-Versjon                               06670068
+      **                                 To    True                     06680068
+      **           Set   R1781910-In-Select                             06690068
+      **                                 To    True                     06700068
+      **           Move  RTFCE110-I-Customer-Id-D (Ws-Idx)              06710068
+      **                                 To    R1781910-In-Kunde-ID     06720068
+      **           Call  'F1781910'      Using R1781910-Kunde-ID        06730068
+      **                                       R7919999-Error-Area      06740068
+      **           End-Call                                             06750068
+      **                                                                06760068
+      **           Evaluate True                                        06770068
+      **             When R7919999-Return-Abend                         06780068
+      **               Move  'FM'        To    R400CH01-Message-Code    06790068
+      **               Move  'C321'      To    R7919999-Paragraph       06800068
+      **               Perform Z900-Abend                               06810068
+      **                                                                06820068
+      **             When R7919999-Return-Error                         06830068
+      **               Move  'FM'        To    R400CH01-Message-Code    06840068
+      **               Move  'C322'      To    R7919999-Paragraph       06850068
+      **               Perform Z700-Error-AE                            06860068
+      **                                                                06870068
+      **             When R1781910-Ut-Konsern-Nr Not                    06880068
+      **                                    = Ws-Fin-Inst-No-Num        06890068
+      **               Move  'F'         To    RTFCE110-I-Customer-Id-O 06900068
+      **                                       (Ws-Idx)                 06910068
+      **               Move  'TF-SY-CUST-ID-FIN-INST'                   06920068
+      **                                 To    R400CH01-Message-Code    06930068
+      **                                                                06940068
+      **           End-Evaluate                                         06950068
+      **       End-If                                                   06960068
+      **                                                                06970068
+      **       Add  1                    To    Ws-Idx                   06980068
+      **   End-Perform                                                  06990068
+      *                                                                 07000068
+           .                                                            07010068
+      *                                                                 07020068
+      *<META C320-PERMITTED-VALUES-UA-EX>                               07030068
+       C320-Permitted-Values-UA-Ex.                                     07040068
+           Exit.                                                        07050068
+      *</META>                                                          07060068
+                                                                        07070068
+      *################################################################*07080068
+      * We make sure that input fields that are not mandatory, gets    *07090068
+      * valid default values if not received.                          *07100068
+      *----------------------------------------------------------------*07110068
+       C400-Default-Values               Section.                       07120068
+      *                                                                 07130068
+      *  This code is maintained by the codegenerator. Any user changes 07140068
+      *  between the META tags will be lost. Any user code should be    07150068
+      *  placed in the C410... or C420.. sections.                      07160068
+      *                                                                 07170068
+      *<META C400-DEFAULT-VALUES>                                       07180068
+      *</META>                                                          07190068
+           Continue                                                     07200068
+           .                                                            07210068
+      *                                                                 07220068
+      *<META C400-DEFAULT-VALUES-EX>                                    07230068
+       C400-Default-Values-Ex.                                          07240068
+           Exit.                                                        07250068
+      *</META>                                                          07260068
+                                                                        07270068
+      *################################################################*07280068
+      * We make sure that input fields that are not mandatory, gets    *07290068
+      * valid default values if not received.                          *07300068
+      * (User Code to execute before generated code)                   *07310068
+      *----------------------------------------------------------------*07320068
+      *<META C410-DEFAULT-VALUES-UB>                                    07330068
+       C410-Default-Values-UB            Section.                       07340068
+      *                                                                 07350068
+      *</META>                                                          07360068
+      *                                                                 07370068
+           Continue                                                     07380068
+      *                                                                 07390068
+           .                                                            07400068
+      *                                                                 07410068
+      *<META C410-DEFAULT-VALUES-UB-EX>                                 07420068
+       C410-Default-Values-UB-Ex.                                       07430068
+           Exit.                                                        07440068
+      *</META>                                                          07450068
+                                                                        07460068
+      *################################################################*07470068
+      * We make sure that input fields that are not mandatory, gets    *07480068
+      * valid default values if not received.                          *07490068
+      * (User Code to execute after  generated code)                   *07500068
+      *----------------------------------------------------------------*07510068
+      *<META C420-DEFAULT-VALUES-UA>                                    07520068
+       C420-Default-Values-UA            Section.                       07530068
+      *                                                                 07540068
+      *</META>                                                          07550068
+      *                                                                 07560068
+           Continue                                                     07570068
+      *                                                                 07580068
+      *                                                                 07590068
+           .                                                            07600068
+      *                                                                 07610068
+      *<META C420-DEFAULT-VALUES-UA-EX>                                 07620068
+       C420-Default-Values-UA-Ex.                                       07630068
+           Exit.                                                        07640068
+      *</META>                                                          07650068
+                                                                        07660068
+      *################################################################*07670068
+      * We make sure that input fields that are not mandatory, gets    *07680068
+      * valid default values if not received.                          *07690068
+      * (User Code to execute after  generated code)                   *07700068
+      *----------------------------------------------------------------*07710068
+       C500-Dependencies                 Section.                       07720068
+      *                                                                 07730068
+      *  This code is maintained by the codegenerator. Any user changes 07740068
+      *  between the META tags will be lost. Any user code should be    07750068
+      *  placed in the C510... or C520.. sections.                      07760068
+      *                                                                 07770068
+      *<META C500-DEPENDENCIES>                                         07780068
+      *</META>                                                          07790068
+           Continue                                                     07800068
+           .                                                            07810068
+      *                                                                 07820068
+      *<META C500-DEPENDENCIES-EX>                                      07830068
+       C500-Dependencies-Ex.                                            07840068
+           Exit.                                                        07850068
+      *</META>                                                          07860068
+                                                                        07870068
+      *################################################################*07880068
+      * Check dependencies between input fields                        *07890068
+      * (User Code to execute before generated code)                   *07900068
+      *----------------------------------------------------------------*07910068
+      *<META C510-DEPENDENCIES-UB>                                      07920068
+       C510-Dependencies-UB              Section.                       07930068
+      *                                                                 07940068
+      *</META>                                                          07950068
+      *                                                                 07960068
+           Continue                                                     07970068
+      *                                                                 07980068
+           .                                                            07990068
+      *                                                                 08000068
+      *<META C510-DEPENDENCIES-UB-EX>                                   08010068
+       C510-Dependencies-UB-Ex.                                         08020068
+           Exit.                                                        08030068
+      *</META>                                                          08040068
+                                                                        08050068
+      *################################################################*08060068
+      * Check dependencies between input fields                        *08070068
+      * (User Code to execute after  generated code)                    08080068
+      *--------------------------------------------------------         08090068
+      *<META C520-DEPENDENCIES-UA>                                      08100068
+       C520-Dependencies-UA              Section.                       08110068
+      *                                                                 08120068
+      *</META>                                                          08130068
+      *                                                                 08140068
+      *        Test removed 17.08.99, it is allowed to have O-Bank-Ref  08150068
+      *        on these contracts                                       08160068
+      *                                                                 08170068
+      **   If  RTFCE110-I-Contract-Type-D = 'EDP'                       08180068
+      **   Or  RTFCE110-I-Contract-Type-D = 'EDA'                       08190068
+      **   Or  RTFCE110-I-Contract-Type-D = 'ECP'                       08200068
+      **   Or  RTFCE110-I-Contract-Type-D = 'ECA'                       08210068
+      **                                                                08220068
+      **       Move  1                   To    Ws-Idx                   08230068
+      **       Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab               08240068
+      **                                                                08250068
+      **           If  RTFCE110-I-Type-I (Ws-Idx) = 'U'                 08260068
+      **           And RTFCE110-I-Type-D (Ws-Idx) = 'REMIT'             08270068
+      **           And RTFCE110-I-Reference-I (Ws-Idx) = 'U'            08280068
+      **                                                                08290068
+      **               Move  'F'         To    RTFCE110-I-Type-O        08300068
+      **                                       (Ws-Idx)                 08310068
+      **               Move  'VAR1'      To    R400CH01-Message-Key(1)  08320068
+      **               Move  'O-Bank-Ref'                               08330068
+      **                                 To    R400CH01-Message-Data(1) 08340068
+      **               Move  'VAR2'      To    R400CH01-Message-Key(2)  08350068
+      **               Move  RTFCE110-I-Contract-Type-D                 08360068
+      **                                 To    R400CH01-Message-Data(2) 08370068
+      **               Move  'TF-SY-FIELD-DEP-FELT1-FELT2'              08380068
+      **                                 To    R400CH01-Message-Code    08390068
+      **               Perform  Z700-Error-AE                           08400068
+      **           End-If                                               08410068
+      **                                                                08420068
+      **           Add  1                To    Ws-Idx                   08430068
+      **       End-Perform                                              08440068
+      **                                                                08450068
+      **   End-If                                                       08460068
+      *                                                                 08470068
+      *    If  RTFCE110-I-Contract-Type-D = 'EDP'                       08480068
+      *    Or  RTFCE110-I-Contract-Type-D = 'EDA'                       08490068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ECP'                       08500068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ECA'                       08510068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ILC'                       08520068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ILU'                       08530068
+      *    Or  RTFCE110-I-Contract-Type-D = 'IDP'                       08540068
+      *    Or  RTFCE110-I-Contract-Type-D = 'IDA'                       08550068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ICP'                       08560068
+      *    Or  RTFCE110-I-Contract-Type-D = 'ICA'                       08570068
+      *                                                                 08580068
+      *        Move  1                   To    Ws-Idx                   08590068
+      *        Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab               08600068
+      *                                                                 08610068
+      *            If  RTFCE110-I-Type-I (Ws-Idx) = 'U'                 08620068
+      *            And RTFCE110-I-Type-D (Ws-Idx) = 'TRANS'             08630068
+      *                                                                 08640068
+      *                Move  'F'         To    RTFCE110-I-Type-O        08650068
+      *                                        (Ws-Idx)                 08660068
+      *                Move  'VAR1'      To    R400CH01-Message-Key(1)  08670068
+      *                Move  'Avsendende bank'                          08680068
+      *                                  To    R400CH01-Message-Data(1) 08690068
+      *                Move  'VAR2'      To    R400CH01-Message-Key(2)  08700068
+      *                Move  RTFCE110-I-Contract-Type-D                 08710068
+      *                                  To    R400CH01-Message-Data(2) 08720068
+      *                Move  'TF-SY-FIELD-DEP-FELT1-FELT2'              08730068
+      *                                  To    R400CH01-Message-Code    08740068
+      *                Perform  Z700-Error-AE                           08750068
+      *            End-If                                               08760068
+      *                                                                 08770068
+      *            Add  1                To    Ws-Idx                   08780068
+      *        End-Perform                                              08790068
+      *                                                                 08800068
+      *    End-If                                                       08810068
+      *                                                                 08820068
+      *    Move  1                       To    Ws-Idx                   08830068
+      *    Set   Wb-Remit-Not-Found      To    True                     08840068
+      *    Set   Wb-Beneb-Not-Found      To    True                     08850068
+      *                                                                 08860068
+      *    Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   08870068
+      *                                                                 08880068
+      *        Evaluate True                                            08890068
+      *          When RTFCE110-I-Type-I     (Ws-Idx) = 'U'              08900068
+      *          And  RTFCE110-I-Type-D     (Ws-Idx) = 'REMIT'          08910068
+      *          And  RTFCE110-I-Selected-I (Ws-Idx) = 'U'              08920068
+      *          And  RTFCE110-I-Selected-D (Ws-Idx) = 'Y'              08930068
+      *            Set  Wb-Remit-Found   To    True                     08940068
+      *                                                                 08950068
+      *          When RTFCE110-I-Type-I     (Ws-Idx) = 'U'              08960068
+      *          And  RTFCE110-I-Type-D     (Ws-Idx) = 'BENEB'          08970068
+      *          And  RTFCE110-I-Selected-I (Ws-Idx) = 'U'              08980068
+      *          And  RTFCE110-I-Selected-D (Ws-Idx) = 'Y'              08990068
+      *            Set  Wb-Beneb-Found   To    True                     09000068
+      *                                                                 09010068
+      *        End-Evaluate                                             09020068
+      *                                                                 09030068
+      *        Add  1                    To    Ws-Idx                   09040068
+      *    End-Perform                                                  09050068
+      *                                                                 09060068
+      *    If  Wb-Beneb-Found                                           09070068
+      *    And Wb-Remit-Found                                           09080068
+      *        Move  'F'                 To    RTFCE110-I-Type-O        09090068
+      *                                        (Ws-Idx)                 09100068
+      *        Move  'VAR1'              To    R400CH01-Message-Key(1)  09110068
+      *        Move  'O-Bank'            To    R400CH01-Message-Data(1) 09120068
+      *        Move  'VAR2'              To    R400CH01-Message-Key(2)  09130068
+      *        Move  'Oppdragsgivers bank'                              09140068
+      *                                  To    R400CH01-Message-Data(2) 09150068
+      *        Move  'TF-SY-FIELD1-NOT-FIELD2'                          09160068
+      *                                  To    R400CH01-Message-Code    09170068
+      *        Perform  Z700-Error-AE                                   09180068
+      *    End-If                                                       09190068
+      *                                                                 09200068
+           Continue                                                     09210068
+      *                                                                 09220068
+           .                                                            09230068
+      *                                                                 09240068
+      *<META C520-DEPENDENCIES-UA-EX>                                   09250068
+       C520-Dependencies-UA-Ex.                                         09260068
+           Exit.                                                        09270068
+      *</META>                                                          09280068
+      *################################################################*09290068
+      * Place code necessary to prepare control of input data against  *09300068
+      * database fields later here. add Perform statements of other    *09310068
+      * sections for your own logic here. Preferably seperate sections *09320068
+      * for each database element to be read.                          *09330068
+      *                                                                *09340068
+      * REMEMBER !!! Use database interfaces. No direct read from this *09350068
+      * module.                                                        *09360068
+      *                                                                *09370068
+      *----------------------------------------------------------------*09380068
+      *<META D000-PREPARE-DB-READ>                                      09390068
+       D000-Prepare-DB-Read              Section.                       09400068
+      *                                                                 09410068
+      *</META>                                                          09420068
+      *                                                                 09430068
+           Continue                                                     09440068
+      *                                                                 09450068
+           .                                                            09460068
+      *                                                                 09470068
+      *<META D000-PREPARE-DB-READ-EX>                                   09480068
+       D000-Prepare-DB-Read-Ex.                                         09490068
+           Exit.                                                        09500068
+      *</META>                                                          09510068
+                                                                        09520068
+      *################################################################*09530068
+      * Check dependencies against databas fields.                     *09540068
+      *                                                                *09550068
+      * Here we perform all nesecarry control , before return to the   *09560068
+      * H-module.                                                      *09570068
+      *                                                                *09580068
+      * Add Perform statements to other sections that contain the      *09590068
+      * actual controls.                                               *09600068
+      *----------------------------------------------------------------*09610068
+      *<META E000-CONTROL-BASE>                                         09620068
+       E000-Control-Base                 Section.                       09630068
+      *                                                                 09640068
+      *</META>                                                          09650068
+      *                                                                 09660068
+      *                                                                 09670068
+           Perform E100-Check-Status                                    09680068
+      *                                                                 09690068
+      *    Are the proposed changes allowed?                            09700068
+      *                                                                 09710068
+      *    Fjernet 06.11.2000 (av ndl) fordi den skapte andre feil.     09720068
+      *    If  RTFCE110-I-Operation-Type-D = 'AMEND-COLL-MAIN'          09730068
+      *        Perform E200-Check-Part-Amount                           09740068
+      *    End-If                                                       09750068
+      *                                                                 09760068
+           Perform E300-Check-Related-Party                             09770068
+           Perform E400-Validate-Change                                 09780068
+           Perform E500-Check-Account-No                                09790068
+           Perform E600-Check-Geo-Country-Code                          09800068
+      *    Perform E700-Check-Bic-Code                                  09810068
+      *                                                                 09820068
+           .                                                            09830068
+      *                                                                 09840068
+      *<META E000-CONTROL-BASE-EX>                                      09850068
+       E000-Control-Base-Ex.                                            09860068
+           Exit.                                                        09870068
+      *</META>                                                          09880068
+                                                                        09890068
+      *################################################################*09900068
+       E100-Check-Status                 Section.                       09910068
+      *                                                                 09920068
+           Initialize                          R115L050-Initial-Check   09930068
+           Set   R115L050-Version        To    True                     09940068
+      *                                                                 09950068
+           Move  R400CH01-Function       To    R115L050-Function        09960068
+           Move  R400CH01-Medium         To    R115L050-Medium          09970068
+           Move  RTFCE110-I-Fin-Inst-No-D                               09980068
+                                         To    R115L050-Fin-Inst-No     09990068
+           Move  RTFCE110-I-Contract-Type-D                             10000068
+                                         To    R115L050-Contr-Type      10010068
+           Move  RTFCE110-I-Contract-No-D                               10020068
+                                         To    R115L050-Contr-No        10030068
+      *                                                                 10040068
+           If  RTFCE110-I-Part-Amount-No-I = 'U'                        10050068
+               Move  RTFCE110-I-Part-Amount-No-D                        10060068
+                                         To    R115L050-PA-Seq-No       10070068
+           End-If                                                       10080068
+      *                                                                 10090068
+           Move  RTFCE110-I-Operation-Type-D                            10100068
+                                         To    R115L050-Operation-Type  10110068
+           Move  RTFCE110-B-Last-Saved-Date-D                           10120068
+                                         To    R115L050-Last-Update-TX  10130068
+           Set   R115L050-Check-For-Upd-Yes                             10140068
+                                         To    True                     10150068
+      *                                                                 10160068
+           Call  'F115L050'              Using R115L050-Initial-Check   10170068
+                                               R7919999-Error           10180068
+           End-Call                                                     10190068
+      *                                                                 10200068
+           Evaluate True                                                10210068
+             When R7919999-Return-Abend                                 10220068
+                                                                        10230068
+               Move  'E101'              To    R7919999-Paragraph       10240068
+               Move  'FM'                To    R400CH01-Message-Code    10250068
+               Perform Z900-Abend                                       10260068
+                                                                        10270068
+             When R7919999-Return-Error                                 10280068
+               Move  'E102'              To    R7919999-Paragraph       10290068
+               Move  'FM'                To    R400CH01-Message-Code    10300068
+               Perform Z700-Error-AE                                    10310068
+                                                                        10320068
+             When R7919999-Return-OK                                    10330068
+               Continue                                                 10340068
+           End-Evaluate                                                 10350068
+      *                                                                 10360068
+           .                                                            10370068
+      *                                                                 10380068
+       E100-Check-Status-Ex.                                            10390068
+           Exit.                                                        10400068
+      *################################################################*10410068
+       E200-Check-Part-Amount            Section.                       10420068
+      *                                                                 10430068
+           Perform E210-Read-Part-Amount                                10440068
+      *                                                                 10450068
+           Move  1                       To    Ws-Idx                   10460068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   10470068
+                                                                        10480068
+               If  RTFCE110-I-Type-I (Ws-Idx) = 'U'                     10490068
+               And RTFCE110-I-Type-D (Ws-Idx) = 'AGENT'                 10500068
+               And Wb-PA-Settled                                        10510068
+                                                                        10520068
+                   Move  'F'             To    RTFCE110-I-Type-O        10530068
+                                               (Ws-Idx)                 10540068
+                   Move  'TF-SY-STATUS-SETTLED'                         10550068
+                                         To    R400CH01-Message-Code    10560068
+                   Perform  Z700-Error-AE                               10570068
+               End-If                                                   10580068
+                                                                        10590068
+               Add  1                    To    Ws-Idx                   10600068
+           End-Perform                                                  10610068
+      *                                                                 10620068
+           .                                                            10630068
+      *                                                                 10640068
+       E200-Check-Part-Amount-Ex.                                       10650068
+           Exit.                                                        10660068
+      *################################################################*10670068
+       E210-Read-Part-Amount             Section.                       10680068
+      *                                                                 10690068
+           Initialize                          R115IPA0-Part-Amount     10700068
+           Set   R115IPA0-Version        To    True                     10710068
+           Set   R115IPA0-In-Get-1st     To    True                     10720068
+           Set   R115IPA0-In-Actual      To    True                     10730068
+      *                                                                 10740068
+           Move  RTFCE110-I-Fin-Inst-No-D                               10750068
+                                         To    R115IPA0-In-Fin-Inst-No  10760068
+           Move  RTFCE110-I-Contract-Type-D                             10770068
+                                         To    R115IPA0-In-Contract-Type10780068
+           Move  RTFCE110-I-Contract-No-D                               10790068
+                                         To    R115IPA0-In-Contract-No  10800068
+      *                                                                 10810068
+           Call  'F115IPA0'              Using R115IPA0-Part-Amount     10820068
+                                               R7919999-Error-Area      10830068
+           End-Call                                                     10840068
+      *                                                                 10850068
+           Set   Wb-PA-Not-Settled       To    True                     10860068
+      *                                                                 10870068
+           Perform Until R7919999-Return-Error                          10880068
+                      Or Wb-PA-Settled                                  10890068
+                                                                        10900068
+                If  R7919999-Return-Abend                               10910068
+                    Move  'E211'         To    R7919999-Paragraph       10920068
+                    Move  'FM'           To    R400CH01-Message-Code    10930068
+                    Perform Z900-Abend                                  10940068
+                End-If                                                  10950068
+                                                                        10960068
+                If  R115IPA0-Status = 'SETTLED'                         10970068
+                    Set Wb-PA-Settled    To    True                     10980068
+                End-If                                                  10990068
+                                                                        11000068
+                Set  R115IPA0-In-Get-Next                               11010068
+                                         To    True                     11020068
+                Call  'F115IPA0'         Using R115IPA0-Part-Amount     11030068
+                                               R7919999-Error-Area      11040068
+                End-Call                                                11050068
+                                                                        11060068
+           End-Perform                                                  11070068
+           Set R7919999-Return-OK        To    True                     11080068
+      *                                                                 11090068
+           .                                                            11100068
+      *                                                                 11110068
+       E210-Read-Part-Amount-Ex.                                        11120068
+           Exit.                                                        11130068
+      *################################################################*11140068
+       E300-Check-Related-Party          Section.                       11150068
+      *                                                                 11160068
+           Move  1                       To    Ws-Idx                   11170068
+      *                                                                 11180068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   11190068
+                                                                        11200068
+               Evaluate True                                            11210068
+                                                                        11220068
+      *                                                                 11230068
+      *           O-Bank's reference must be unique.                    11240068
+      *                                                                 11250068
+      *          When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            11260068
+      *           And RTFCE110-I-Type-D (Ws-Idx)       = 'REMIT'        11270068
+      *           And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            11280068
+      *           And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            11290068
+      *           And RTFCE110-I-Operation-Type-D      = 'REGISTER'     11300068
+      *           And RTFCE110-I-Reference-I (Ws-Idx)  = 'U'            11310068
+      *            Set  Wb-Remit         To    True                     11320068
+      *            Perform E320-Read-All-Related-Party                  11330068
+      *                                                                 11340068
+      *                                                                 11350068
+      *           Issuing bank's reference must be unique.              11360068
+      *                                                                 11370068
+      *          When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            11380068
+      *           And RTFCE110-I-Type-D (Ws-Idx)       = 'ISSUI'        11390068
+      *           And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            11400068
+      *           And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            11410068
+      *           And RTFCE110-I-Operation-Type-D      = 'ADVICE'       11420068
+      *           And RTFCE110-I-Reference-I (Ws-Idx)  = 'U'            11430068
+      *            Set  Wb-Issui         To    True                     11440068
+      *            Perform E320-Read-All-Related-Party                  11450068
+      *                                                                 11460068
+      *                                                                 11470068
+      *           We can change the reference of the collecting bank    11480068
+      *                                                                 11490068
+                 When RTFCE110-I-Type-I     (Ws-Idx)   = 'U'            11500068
+                  And RTFCE110-I-Type-D     (Ws-Idx)   = 'ISSUI'        11510068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            11520068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            11530068
+                  And   RTFCE110-I-Operation-Type-D  = 'AMEND-ELC-MAIN' 11540068
+                   If (   RTFCE110-I-Customer-Id-I   (Ws-Idx) = 'U'     11550068
+                        Or RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'     11560068
+                        Or RTFCE110-I-Account-No-2-I (Ws-Idx) = 'U' )   11570068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  11580068
+                       Move  'Utstedende banks'                         11590068
+                                         To    R400CH01-Message-Data(1) 11600068
+                       Move  'TF-SY-CHANGE-REF-ALLOWED'                 11610068
+                                         To   R400CH01-Message-Code     11620068
+                       Perform  Z700-Error-AE                           11630068
+                   End-If                                               11640068
+      *                                                                 11650068
+      *           We can change the reference of the collecting bank    11660068
+      *                                                                 11670068
+                 When RTFCE110-I-Type-I     (Ws-Idx)   = 'U'            11680068
+                  And RTFCE110-I-Type-D     (Ws-Idx)   = 'COLL'         11690068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            11700068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            11710068
+                  And (   RTFCE110-I-Operation-Type-D  = 'ACCEPT-COLL'  11720068
+                       Or RTFCE110-I-Operation-Type-D  = 'SETTLE-COLL') 11730068
+      *                Or RTFCE110-I-Operation-Type-D                   11740068
+      *                                            = 'AMEND-COLL-MAIN') 11750068
+                   If (   RTFCE110-I-Customer-Id-I   (Ws-Idx) = 'U'     11760068
+                        Or RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'     11770068
+                        Or RTFCE110-I-Account-No-2-I (Ws-Idx) = 'U' )   11780068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  11790068
+                       Move  'I-Banks'   To    R400CH01-Message-Data(1) 11800068
+                       Move  'TF-SY-CHANGE-REF-ALLOWED'                 11810068
+                                         To    R400CH01-Message-Code    11820068
+                       Perform  Z700-Error-AE                           11830068
+                   End-If                                               11840068
+                                                                        11850068
+      *                                                                 11860068
+      *           We can only register a new party if it does not       11870068
+      *           allready exist.                                       11880068
+      *                                                                 11890068
+      *          When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            11900068
+      *           And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            11910068
+      *           And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            11920068
+      *           And RTFCE110-I-Operation-Type-D  = 'SETTLE-COLL'      11930068
+      *            Move RTFCE110-I-Type-D (Ws-Idx)                      11940068
+      *                                  To    Wb-Role-Type             11950068
+      *            Perform E310-Read-Related-Party                      11960068
+      *                                                                 11970068
+      *            If  R7919999-Return-OK                               11980068
+      *            And (   Wb-Role-Type = 'AGENB'                       11990068
+      *                 Or Wb-Role-Type = 'OCCLA'                       12000068
+      *                 Or Wb-Role-Type = 'ACRCL'                       12010068
+      *                 Or Wb-Role-Type = 'INTEA'                       12020068
+      *                 Or Wb-Role-Type = 'OCRCL'                       12030068
+      *                 Or Wb-Role-Type = 'TCRCL'                       12040068
+      *                 Or Wb-Role-Type = 'INTER'                       12050068
+      *                 Or Wb-Role-Type = 'BENEB' )                     12060068
+      *                Perform E330-Read-SYS-Code                       12070068
+      *                Move  'F'         To    RTFCE110-I-Type-O        12080068
+      *                                        (Ws-Idx)                 12090068
+      *                Move  'VAR1'      To    R400CH01-Message-Key(1)  12100068
+      *                Move  R115ISC0-Description                       12110068
+      *                                  To    R400CH01-Message-Data(1) 12120068
+      *                Move  'TF-SY-VAR-EXISTS'                         12130068
+      *                                  To    R400CH01-Message-Code    12140068
+      *                Perform  Z700-Error-AE                           12150068
+      *            Else                                                 12160068
+      *                Set R7919999-Return-OK  To True                  12170068
+      *            End-If                                               12180068
+      *                                                                 12190068
+      *                                                                 12200068
+      *           We can change the account no of the drawer and drwee. 12210068
+      *                                                                 12220068
+                 When RTFCE110-I-Type-I     (Ws-Idx)   = 'U'            12230068
+                  And (  RTFCE110-I-Type-D     (Ws-Idx)   = 'DRWEE'     12240068
+                      Or RTFCE110-I-Type-D     (Ws-Idx)   = 'DRWER' )   12250068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            12260068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            12270068
+                  And RTFCE110-I-Operation-Type-D  = 'RETURN-COLL'      12280068
+                  And RTFCE110-I-Part-Amount-No-I  Not = 'U'            12290068
+                                                                        12300068
+                   If (   RTFCE110-I-Customer-Id-I   (Ws-Idx) = 'U'     12310068
+                        Or RTFCE110-I-Reference-I    (Ws-Idx) = 'U' )   12320068
+                       Move RTFCE110-I-Type-D     (Ws-Idx)              12330068
+                                         To    Wb-Role-Type             12340068
+                       Perform E330-Read-SYS-Code                       12350068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  12360068
+                       Move  R115ISC0-Description                       12370068
+                                         To    R400CH01-Message-Data(1) 12380068
+                       Move  'TF-SY-CHANGE-ACC-ALLOWED'                 12390068
+                                         To    R400CH01-Message-Code    12400068
+                       Perform  Z700-Error-AE                           12410068
+                   End-If                                               12420068
+                                                                        12430068
+      *                                                                 12440068
+      *           We can only change the account-no's if they are not   12450068
+      *           allready registered.                                  12460068
+      *                                                                 12470068
+                 When RTFCE110-I-Type-I       (Ws-Idx) = 'U'            12480068
+                  And RTFCE110-I-Type-D (      Ws-Idx) = 'CUSTM'        12490068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            12500068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            12510068
+                  And RTFCE110-I-Operation-Type-D      = 'SETTLE-ILC'   12520068
+                  And (   RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'      12530068
+                       Or RTFCE110-I-Account-No-2-I (Ws-idx) = 'U' )    12540068
+                   Set  Wb-Custm         To    True                     12550068
+                   Perform E310-Read-Related-Party                      12560068
+                                                                        12570068
+                   If  R7919999-Return-OK                               12580068
+                   And (   R115IRP0-Account   Not = Spaces              12590068
+                        Or R115IRP0-Account-2 Not = Spaces )            12600068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  12610068
+                       Move  'Belastningskonto'                         12620068
+                                         To    R400CH01-Message-Data(1) 12630068
+                       Move  'TF-SY-VAR-EXISTS'                         12640068
+                                         To    R400CH01-Message-Code    12650068
+                       Perform  Z700-Error-AE                           12660068
+                   Else                                                 12670068
+                       Set R7919999-Return-OK   To True                 12680068
+                   End-If                                               12690068
+                                                                        12700068
+      *                                                                 12710068
+      *           We can only change the reference of the Presenting    12720068
+      *           Bank if this bank allready exist.                     12730068
+      *                                                                 12740068
+      *          When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            12750068
+      *           And RTFCE110-I-Type-D (Ws-Idx)       = 'AVAIL'        12760068
+      *           And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            12770068
+      *           And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            12780068
+      *           And (   RTFCE110-I-Operation-Type-D  = 'ACCEPT-ILC')  12790068
+      *            Set  Wb-Avail         To    True                     12800068
+      *            Perform E310-Read-Related-Party                      12810068
+      *            If  R7919999-Return-OK                               12820068
+      *            And (   RTFCE110-I-Customer-Id-I  (Ws-Idx) = 'U'     12830068
+      *                 Or RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'     12840068
+      *                 Or RTFCE110-I-Account-No-2-I (Ws-Idx) = 'U'  )  12850068
+      *                Perform E330-Read-SYS-Code                       12860068
+      *                Move  'VAR1'      To    R400CH01-Message-Key(1)  12870068
+      *                Move  R115ISC0-Description                       12880068
+      *                                  To    R400CH01-Message-Data(1) 12890068
+      *                Move  'TF-SY-CHANGE-REF-ALLOWED'                 12900068
+      *                                  To    R400CH01-Message-Code    12910068
+      *                Perform  Z700-Error-AE                           12920068
+      *            Else                                                 12930068
+      *                Set R7919999-Return-OK   To True                 12940068
+      *            End-If                                               12950068
+                                                                        12960068
+      *                                                                 12970068
+      *           We can change the account no of the customer/applicant12980068
+      *                                                                 12990068
+                 When RTFCE110-I-Type-I     (Ws-Idx)   = 'U'            13000068
+                  And RTFCE110-I-Type-D     (Ws-Idx)   = 'CUSTM'        13010068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            13020068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            13030068
+                  And (   RTFCE110-I-Operation-Type-D  = 'ACCEPT-ILC'   13040068
+                       Or RTFCE110-I-Operation-Type-D  = 'EXPIRE-ILC' ) 13050068
+                                                                        13060068
+                   If (   RTFCE110-I-Customer-Id-I   (Ws-Idx) = 'U'     13070068
+                        Or RTFCE110-I-Reference-I    (Ws-Idx) = 'U' )   13080068
+                       Set  Wb-Custm     To    True                     13090068
+                       Perform E330-Read-SYS-Code                       13100068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  13110068
+                       Move  R115ISC0-Description                       13120068
+                                         To    R400CH01-Message-Data(1) 13130068
+                       Move  'TF-SY-CHANGE-ACC-ALLOWED'                 13140068
+                                         To    R400CH01-Message-Code    13150068
+                       Perform  Z700-Error-AE                           13160068
+                   End-If                                               13170068
+                                                                        13180068
+      *                                                                 13190068
+      *           We can only register a new Debit Clearing Bank if     13200068
+      *           this bank does not allready exist.                    13210068
+      *                                                                 13220068
+                 When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            13230068
+                  And RTFCE110-I-Type-D (Ws-Idx)       = 'DECL'         13240068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            13250068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            13260068
+                  And RTFCE110-I-Operation-Type-D      = 'DISPOSE'      13270068
+                   Set  Wb-Decl          To    True                     13280068
+                   Perform E310-Read-Related-Party                      13290068
+                   If  R7919999-Return-OK                               13300068
+                       Move  'F'         To    RTFCE110-I-Type-O        13310068
+                                               (Ws-Idx)                 13320068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  13330068
+                       Move  'Dekningsbank'                             13340068
+                                         To    R400CH01-Message-Data(1) 13350068
+                       Move  'TF-SY-VAR-EXISTS'                         13360068
+                                         To    R400CH01-Message-Code    13370068
+                       Perform  Z700-Error-AE                           13380068
+                   Else                                                 13390068
+                       Set R7919999-Return-OK   To True                 13400068
+                   End-If                                               13410068
+                                                                        13420068
+      *    27.04.04 (ndl)                                               13430068
+      *    Kunde-Id must be zero and customer-type = 'T' (tastpart)     13440068
+      *    When custm-type = 'ISSTP'                                    13450068
+      *                                                                 13460068
+                 When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            13470068
+                  And RTFCE110-I-Type-D (Ws-Idx)       = 'ISSTP'        13480068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            13490068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            13500068
+                  And RTFCE110-I-Operation-Type-D      = 'DISPOSE'      13510068
+                  And RTFCE110-I-Customer-Id-D   (Ws-Idx) > +0          13520068
+      *           And RTFCE110-I-Custm-Type-D (Ws-Idx) Not = 'T'        13530068
+                       Move  'F'         To    RTFCE110-I-Type-O        13540068
+                                               (Ws-Idx)                 13550068
+                       Move  'FELT1'     To    R400CH01-Message-Key(1)  13560068
+                       Move  'Kundenr, må være tastepart'               13570068
+                                         To    R400CH01-Message-Data(1) 13580068
+                       Move  'GL-UGYLDIG-VERDI&'                        13590068
+                                         To    R400CH01-Message-Code    13600068
+                       Perform  Z700-Error-AE                           13610068
+      *                                                                 13620068
+      *           We can only change the reference of the beneficiant   13630068
+      *                                                                 13640068
+                 When RTFCE110-I-Type-I     (Ws-Idx)   = 'U'            13650068
+                  And RTFCE110-I-Type-D     (Ws-Idx)   = 'BENEF'        13660068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            13670068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            13680068
+                  And RTFCE110-I-Operation-Type-D      = 'DISPOSE'      13690068
+                   If (   RTFCE110-I-Customer-Id-I   (Ws-Idx) = 'U'     13700068
+                        Or RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'     13710068
+                        Or RTFCE110-I-Account-No-2-I (Ws-Idx) = 'U' )   13720068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  13730068
+                       Move  'benefisiantens'                           13740068
+                                         To    R400CH01-Message-Data(1) 13750068
+                       Move  'TF-SY-CHANGE-REF-ALLOWED'                 13760068
+                                         To    R400CH01-Message-Code    13770068
+                       Perform  Z700-Error-AE                           13780068
+                   End-If                                               13790068
+                                                                        13800068
+      *                                                                 13810068
+      *           We can only register a new confirming bank if         13820068
+      *           this bank does not allready exist.                    13830068
+      *                                                                 13840068
+                 When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            13850068
+                  And RTFCE110-I-Type-D (Ws-Idx)       = 'CONF'         13860068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            13870068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            13880068
+                  And RTFCE110-I-Operation-Type-D      = 'ACCEPT-ELC'   13890068
+                   Set  Wb-Reimb         To    True                     13900068
+                   Perform E310-Read-Related-Party                      13910068
+                   If  R7919999-Return-OK                               13920068
+                       Move  'F'         To    RTFCE110-I-Type-O        13930068
+                                               (Ws-Idx)                 13940068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  13950068
+                       Move  'Bekreftende bank'                         13960068
+                                         To    R400CH01-Message-Data(1) 13970068
+                       Move  'TF-SY-VAR-EXISTS'                         13980068
+                                         To    R400CH01-Message-Code    13990068
+                       Perform  Z700-Error-AE                           14000068
+                   Else                                                 14010068
+                       Set R7919999-Return-OK   To True                 14020068
+                   End-If                                               14030068
+                                                                        14040068
+      *                                                                 14050068
+      *           We can only register a new Presenting Bank if         14060068
+      *           this bank does not allready exist.                    14070068
+      *                                                                 14080068
+                 When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            14090068
+                  And RTFCE110-I-Type-D (Ws-Idx)       = 'AVAIL'        14100068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            14110068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            14120068
+                  And RTFCE110-I-Operation-Type-D      = 'ACCEPT-ELC'   14130068
+                   Set  Wb-Reimb         To    True                     14140068
+                   Perform E310-Read-Related-Party                      14150068
+                   If  R7919999-Return-OK                               14160068
+                       Move  'F'         To    RTFCE110-I-Type-O        14170068
+                                               (Ws-Idx)                 14180068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  14190068
+                       Move  'Presenterende bank'                       14200068
+                                         To    R400CH01-Message-Data(1) 14210068
+                       Move  'TF-SY-VAR-EXISTS'                         14220068
+                                         To    R400CH01-Message-Code    14230068
+                       Perform  Z700-Error-AE                           14240068
+                   Else                                                 14250068
+                       Set R7919999-Return-OK   To True                 14260068
+                   End-If                                               14270068
+                                                                        14280068
+      *                                                                 14290068
+      *           We can only register a new issuing bank if            14300068
+      *           this bank does not allready exist.                    14310068
+      *                                                                 14320068
+                 When RTFCE110-I-Type-I (Ws-Idx)       = 'U'            14330068
+                  And RTFCE110-I-Type-D (Ws-Idx)       = 'ISSUI'        14340068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            14350068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            14360068
+                  And RTFCE110-I-Operation-Type-D      = 'ACCEPT-ELC'   14370068
+                   Set  Wb-Reimb         To    True                     14380068
+                   Perform E310-Read-Related-Party                      14390068
+                   If  R7919999-Return-OK                               14400068
+                       Move  'F'         To    RTFCE110-I-Type-O        14410068
+                                               (Ws-Idx)                 14420068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  14430068
+                       Move  'Bekreftende bank'                         14440068
+                                         To    R400CH01-Message-Data(1) 14450068
+                       Move  'TF-SY-VAR-EXISTS'                         14460068
+                                         To    R400CH01-Message-Code    14470068
+                       Perform  Z700-Error-AE                           14480068
+                   Else                                                 14490068
+                       Set R7919999-Return-OK   To True                 14500068
+                   End-If                                               14510068
+                                                                        14520068
+               End-Evaluate                                             14530068
+      *                                                                 14540068
+      *           We can not allow the owner of the                     14550068
+      *           contract to be a tast-part or bic-part.               14560068
+      *                                                                 14570068
+                 If   RTFCE110-I-Type-I (Ws-Idx)       = 'U'            14580068
+                  And RTFCE110-I-Type-D (Ws-Idx)      = 'DRWER'         14590068
+      *           Or   RTFCE110-I-Type-D (Ws-Idx)      = 'REMIT')       14600068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            14610068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            14620068
+                  And RTFCE110-I-Custm-Type-I (Ws-Idx) = 'U'            14630068
+                  And  RTFCE110-I-Custm-Type-D (Ws-Idx) = 'T'           14640068
+      *           Or   RTFCE110-I-Custm-Type-D (Ws-Idx) = 'B')          14650068
+                                                                        14660068
+                  If  (RTFCE110-I-Contract-Type-D      = 'EDP'          14670068
+                  Or   RTFCE110-I-Contract-Type-D      = 'EDA'          14680068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ECP'          14690068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ECA')         14700068
+                       Move  'F'         To    RTFCE110-I-Custm-Type-O  14710068
+                                               (Ws-Idx)                 14720068
+                       Move  'TF-SY-NO-TASTPART'                        14730068
+                                         To    R400CH01-Message-Code    14740068
+                       Perform  Z700-Error-AE                           14750068
+                  End-If                                                14760068
+                 End-If                                                 14770068
+                                                                        14780068
+                 If   RTFCE110-I-Type-I (Ws-Idx)       = 'U'            14790068
+      *           And (RTFCE110-I-Type-D (Ws-Idx)      = 'REMIT'        14800068
+                  And  RTFCE110-I-Type-D (Ws-Idx)      = 'DRWEE'        14810068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            14820068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            14830068
+                  And RTFCE110-I-Custm-Type-I (Ws-Idx) = 'U'            14840068
+                  And  RTFCE110-I-Custm-Type-D (Ws-Idx) = 'T'           14850068
+      **          Or   RTFCE110-I-Custm-Type-D (Ws-Idx) = 'B')          14860068
+                                                                        14870068
+                  If  (RTFCE110-I-Contract-Type-D      = 'IDP'          14880068
+                  Or   RTFCE110-I-Contract-Type-D      = 'IDA'          14890068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ICP'          14900068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ICA')         14910068
+                       Move  'F'         To    RTFCE110-I-Custm-Type-O  14920068
+                                               (Ws-Idx)                 14930068
+                       Move  'TF-SY-NO-TASTPART'                        14940068
+                                         To    R400CH01-Message-Code    14950068
+                       Perform  Z700-Error-AE                           14960068
+                  End-If                                                14970068
+                 End-If                                                 14980068
+                                                                        14990068
+                 If   RTFCE110-I-Type-I (Ws-Idx)       = 'U'            15000068
+                  And (RTFCE110-I-Type-D (Ws-Idx)      = 'CUSTM'        15010068
+                   or  RTFCE110-I-Type-D (Ws-Idx)      = 'ADVIS')       15020068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            15030068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            15040068
+                  And RTFCE110-I-Custm-Type-I (Ws-Idx) = 'U'            15050068
+                  And  RTFCE110-I-Custm-Type-D (Ws-Idx) = 'T'           15060068
+      *           Or   RTFCE110-I-Custm-Type-D (Ws-Idx) = 'B')          15070068
+                                                                        15080068
+                  If  (RTFCE110-I-Contract-Type-D      = 'ILC'          15090068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ILU')         15100068
+                       Move  'F'         To    RTFCE110-I-Custm-Type-O  15110068
+                                               (Ws-Idx)                 15120068
+                       Move  'TF-SY-NO-TASTPART'                        15130068
+                                         To    R400CH01-Message-Code    15140068
+                       Perform  Z700-Error-AE                           15150068
+                  End-If                                                15160068
+                 End-If                                                 15170068
+                                                                        15180068
+                 If   RTFCE110-I-Type-I (Ws-Idx)       = 'U'            15190068
+                  And RTFCE110-I-Type-D (Ws-Idx)      = 'ISSUI'         15200068
+                  And RTFCE110-I-Selected-I (Ws-Idx)   = 'U'            15210068
+                  And RTFCE110-I-Selected-D (Ws-Idx)   = 'Y'            15220068
+                  And RTFCE110-I-Custm-Type-I (Ws-Idx) = 'U'            15230068
+                  And  RTFCE110-I-Custm-Type-D (Ws-Idx) = 'T'           15240068
+      *           Or   RTFCE110-I-Custm-Type-D (Ws-Idx) = 'B')          15250068
+                                                                        15260068
+                  If  (RTFCE110-I-Contract-Type-D      = 'ELC'          15270068
+                  Or   RTFCE110-I-Contract-Type-D      = 'ECC'          15280078
+                  Or   RTFCE110-I-Contract-Type-D      = 'ELG')         15281077
+                       Move  'F'         To    RTFCE110-I-Custm-Type-O  15290068
+                                               (Ws-Idx)                 15300068
+                       Move  'TF-SY-NO-TASTPART'                        15310068
+                                         To    R400CH01-Message-Code    15320068
+                       Perform  Z700-Error-AE                           15330068
+                  End-If                                                15340068
+                 End-If                                                 15350068
+                                                                        15360068
+                                                                        15370068
+               Add  1                    To    Ws-Idx                   15380068
+           End-Perform                                                  15390068
+      *                                                                 15400068
+           .                                                            15410068
+      *                                                                 15420068
+       E300-Check-Related-Party-Ex.                                     15430068
+           Exit.                                                        15440068
+      *################################################################*15450068
+       E310-Read-Related-Party           Section.                       15460068
+      *                                                                 15470068
+           Initialize                          R115IRP0-Related-Party   15480068
+           Set   R115IRP0-Version        To    True                     15490068
+           Set   R115IRP0-In-Select      To    True                     15500068
+           Set   R115IRP0-In-Actual      To    True                     15510068
+      *                                                                 15520068
+           Move  RTFCE110-I-Fin-Inst-No-D                               15530068
+                                         To    R115IRP0-In-Fin-Inst-No  15540068
+           Move  RTFCE110-I-Contract-Type-D                             15550068
+                                         To    R115IRP0-In-Contract-Type15560068
+           Move  RTFCE110-I-Contract-No-D                               15570068
+                                         To    R115IRP0-In-Contract-No  15580068
+           Move  Wb-Role-Type            To    R115IRP0-In-Role-Type    15590068
+           Set   R115IRP0-In-Rel-MC      To    True                     15600068
+      *                                                                 15610068
+           Call  'F115IRP0'              Using R115IRP0-Related-Party   15620068
+                                               R7919999-Error-Area      15630068
+           End-Call                                                     15640068
+      *                                                                 15650068
+           If  R7919999-Return-Abend                                    15660068
+               Move  'E311'              To    R7919999-Paragraph       15670068
+               Move  'FM'                To    R400CH01-Message-Code    15680068
+               Perform Z900-Abend                                       15690068
+           End-If                                                       15700068
+      *                                                                 15710068
+           .                                                            15720068
+      *                                                                 15730068
+       E310-Read-Related-Party-Ex.                                      15740068
+           Exit.                                                        15750068
+      *################################################################*15760068
+      *E320-Read-All-Related-Party       Section.                       15770068
+      *                                                                 15780068
+      *    Initialize                          R115IRP0-Related-Party   15790068
+      *    Set   R115IRP0-Version        To    True                     15800068
+      *    Set   R115IRP0-In-Get-1st     To    True                     15810068
+      *    Set   R115IRP0-In-Actual      To    True                     15820068
+      *                                                                 15830068
+      *    Move  RTFCE110-I-Fin-Inst-No-D                               15840068
+      *                                  To    R115IRP0-In-Fin-Inst-No  15850068
+      *    Move  Wb-Role-Type            To    R115IRP0-In-Role-Type    15860068
+      *                                                                 15870068
+      *    Call  'F115IRP0'              Using R115IRP0-Related-Party   15880068
+      *                                        R7919999-Error-Area      15890068
+      *    End-Call                                                     15900068
+      *                                                                 15910068
+      *    Perform Until R7919999-Return-Error                          15920068
+      *                                                                 15930068
+      *        If  R7919999-Return-Abend                                15940068
+      *            Move  'E311'          To    R7919999-Paragraph       15950068
+      *            Move  'FM'            To    R400CH01-Message-Code    15960068
+      *            Perform Z900-Abend                                   15970068
+      *        End-If                                                   15980068
+      *                                                                 15990068
+      *        If  R115IRP0-Customer-ID =                               16000068
+      *                               RTFCE110-I-Customer-Id-D(Ws-Idx)  16010068
+      *        And R115IRP0-Reference = RTFCE110-I-Reference-D(Ws-Idx)  16020068
+      *        If  R115IRP0-Reference = RTFCE110-I-Reference-D(Ws-Idx)  16030068
+      *        And R115IRP0-Contract-No Not =                           16040068
+      *                                 RTFCE110-I-Contract-No-D        16050068
+      *            String                                               16060068
+      *           'Annen banks referanse eksiterer for kontrakt '       16070068
+      *                                              Delimited by Size  16080068
+      *                   RTFCE110-I-Contract-Type-D Delimited by Size  16090068
+      *                   RTFCE110-I-Contract-No-D   Delimited by Size  16100068
+      *                                   Into  R7919999-Message        16110068
+      *            End-String                                           16120068
+      *            Move  'E320'              To    R7919999-Paragraph   16130068
+      *            Move  'FM'                To    R400CH01-Message-Code16140068
+      *            Perform  Z700-Error-AE                               16150068
+      *            Perform  Z600-Error-AW                               16160068
+      *        End-If                                                   16170068
+      *                                                                 16180068
+      *        Set  R115IRP0-In-Get-Next To    True                     16190068
+      *        Call  'F115IRP0'          Using R115IRP0-Related-Party   16200068
+      *                                        R7919999-Error-Area      16210068
+      *        End-Call                                                 16220068
+      *                                                                 16230068
+      *    End-Perform                                                  16240068
+      *    Set R7919999-Return-OK        To    True                     16250068
+      *                                                                 16260068
+      *    .                                                            16270068
+      *                                                                 16280068
+      *E320-Read-All-Related-Party-Ex.                                  16290068
+      *    Exit.                                                        16300068
+      *################################################################*16310068
+       E330-Read-SYS-Code                Section.                       16320068
+      *                                                                 16330068
+           Initialize                          R115ISC0-Sys-Code        16340068
+           Set   R115ISC0-Version        To    True                     16350068
+           Set   R115ISC0-In-Select      To    True                     16360068
+           Move  'RELATED-PARTY'         To    R115ISC0-In-ST-Type      16370068
+           Move  RTFCE110-I-Fin-Inst-No-D                               16380068
+                                         To    R115ISC0-In-Fin-Inst-No  16390068
+           Move  Spaces                  To    R115ISC0-In-Contr-type   16400068
+           Move  Wb-Role-Type            To    R115ISC0-In-SC-Code      16410068
+      *                                                                 16420068
+           Call  'F115ISC0'              Using R115ISC0-Sys-Code        16430068
+                                               R7919999-Error-Area      16440068
+           End-Call                                                     16450068
+      *                                                                 16460068
+           Evaluate True                                                16470068
+             When R7919999-Return-Abend                                 16480068
+               Move  'FM'                To    R400CH01-Message-Code    16490068
+               Move  'E331'              To    R7919999-Paragraph       16500068
+               Perform Z900-Abend                                       16510068
+      *                                                                 16520068
+             When R7919999-Return-Error                                 16530068
+               Move  'FM'                To    R400CH01-Message-Code    16540068
+               Move  'E332'              To    R7919999-Paragraph       16550068
+               Perform Z700-Error-AE                                    16560068
+      *                                                                 16570068
+           End-Evaluate                                                 16580068
+      *                                                                 16590068
+           .                                                            16600068
+      *                                                                 16610068
+       E330-Read-SYS-Code-Ex.                                           16620068
+           Exit.                                                        16630068
+      *################################################################*16640068
+       E400-Validate-Change              Section.                       16650068
+      *                                                                 16660068
+           Move  1                       To    Ws-Idx                   16670068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   16680068
+                                                                        16690068
+               If  RTFCE110-I-Type-I (Ws-Idx) = 'U'                     16700068
+               And RTFCE110-I-Customer-Id-I   (Ws-Idx)  = 'U'           16710068
+                   Perform E410-Read-SYS-Code-Rel                       16720068
+                   If  R7919999-Return-Error                            16730068
+                       Perform E420-Read-SYS-Code                       16740068
+                       Move  'F'         To    RTFCE110-I-Type-O        16750068
+                                               (Ws-Idx)                 16760068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  16770068
+                       If  R115ISC0-Description Not = Spaces            16780068
+                           Move  R115ISC0-Description                   16790068
+                                         To    R400CH01-Message-Data(1) 16800068
+                       Else                                             16810068
+                           Move  RTFCE110-I-Type-D (Ws-Idx)             16820068
+                                         To    R400CH01-Message-Data(1) 16830068
+                       End-If                                           16840068
+                       Move  'VAR2'      To    R400CH01-Message-Key(2)  16850068
+                       Move  RTFCE110-I-Operation-Type-D                16860068
+                                         To    R400CH01-Message-Data(2) 16870068
+                       Move  'TF-SY-OP-VAR-INVALID-COMB'                16880068
+                                         To    R400CH01-Message-Code    16890068
+                       Perform  Z700-Error-AE                           16900068
+                   End-If                                               16910068
+               End-If                                                   16920068
+                                                                        16930068
+               Add  1                    To    Ws-Idx                   16940068
+           End-Perform                                                  16950068
+      *                                                                 16960068
+           .                                                            16970068
+      *                                                                 16980068
+       E400-Validate-Change-Ex.                                         16990068
+           Exit.                                                        17000068
+      *################################################################*17010068
+       E410-Read-SYS-Code-Rel            Section.                       17020068
+      *                                                                 17030068
+           Initialize                          R115ISR0-Sys-Code-Rel    17040068
+           Set   R115ISR0-Version        To    True                     17050068
+           Set   R115ISR0-In-Select      To    True                     17060068
+      *                                                                 17070068
+           Move  RTFCE110-I-Fin-Inst-No-D                               17080068
+                                         To    R115ISR0-In-F-I-No       17090068
+           Move  'OPERATION-TYPE'        To    R115ISR0-In-From-ST-Type 17100068
+           Move  RTFCE110-I-Operation-Type-D                            17110068
+                                         To    R115ISR0-In-From-SC-Code 17120068
+           Move  Spaces                  To  R115ISR0-In-From-Contr-Type17130068
+      *                                                                 17140068
+           Move  'RELATED-PARTY'         To    R115ISR0-In-To-ST-Type   17150068
+           Move  RTFCE110-I-Type-D (Ws-Idx)                             17160068
+                                         To    R115ISR0-In-To-SC-Code   17170068
+           Move  Spaces                  To    R115ISR0-In-To-Contr-Type17180068
+      *                                                                 17190068
+           Move  'VALID-OP-PART-W'       To    R115ISR0-In-Relation-Type17200068
+                                                                        17210068
+           Call  'F115ISR0'              Using R115ISR0-Sys-Code-Rel    17220068
+                                               R7919999-Error-Area      17230068
+           End-Call                                                     17240068
+      *                                                                 17250068
+           Evaluate True                                                17260068
+             When R7919999-Return-Abend                                 17270068
+                                                                        17280068
+               Move  'E411'              To    R7919999-Paragraph       17290068
+               Move  'FM'                To    R400CH01-Message-Code    17300068
+               Perform Z900-Abend                                       17310068
+                                                                        17320068
+             When R7919999-Return-Error                                 17330068
+               Continue                                                 17340068
+                                                                        17350068
+             When R7919999-Return-OK                                    17360068
+               Continue                                                 17370068
+           End-Evaluate                                                 17380068
+      *                                                                 17390068
+           .                                                            17400068
+      *                                                                 17410068
+       E410-Read-SYS-Code-Rel-Ex.                                       17420068
+           Exit.                                                        17430068
+      *################################################################*17440068
+       E420-Read-SYS-Code                Section.                       17450068
+      *                                                                 17460068
+           Initialize                          R115ISC0-Sys-Code        17470068
+           Set   R115ISC0-Version        To    True                     17480068
+           Set   R115ISC0-In-Select      To    True                     17490068
+      *                                                                 17500068
+           Move  RTFCE110-I-Fin-Inst-No-D                               17510068
+                                         To    R115ISC0-In-Fin-Inst-No  17520068
+           Move  'RELATED-PARTY'         To    R115ISC0-In-ST-Type      17530068
+           Move  RTFCE110-I-Type-D (Ws-Idx)                             17540068
+                                         To    R115ISC0-In-SC-Code      17550068
+      *                                                                 17560068
+           Call  'F115ISC0'              Using R115ISC0-Sys-Code        17570068
+                                               R7919999-Error-Area      17580068
+           End-Call                                                     17590068
+      *                                                                 17600068
+           Evaluate True                                                17610068
+             When R7919999-Return-Abend                                 17620068
+               Move  'E421'              To    R7919999-Paragraph       17630068
+               Move  'FM'                To    R400CH01-Message-Code    17640068
+               Perform Z900-Abend                                       17650068
+                                                                        17660068
+             When R7919999-Return-Error                                 17670068
+               Move  'FM'                To    R400CH01-Message-Code    17680068
+               Move  'E422'              To    R7919999-Paragraph       17690068
+               Perform Z700-Error-AE                                    17700068
+      *                                                                 17710068
+                                                                        17720068
+             When R7919999-Return-OK                                    17730068
+               Continue                                                 17740068
+                                                                        17750068
+           End-Evaluate                                                 17760068
+      *                                                                 17770068
+           .                                                            17780068
+      *                                                                 17790068
+       E420-Read-SYS-Code-Ex.                                           17800068
+           Exit.                                                        17810068
+      *################################################################*17820068
+       E500-Check-Account-No             Section.                       17830068
+      *                                                                 17840068
+           Move  1                       To    Ws-Idx                   17850068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   17860068
+                                                                        17870068
+               If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             17880068
+               And RTFCE110-I-Account-No-1-I (Ws-Idx) = 'U'             17890068
+                   Move  RTFCE110-I-Account-No-1-D (Ws-Idx)             17900068
+                                         To    Ws-Account               17910068
+      *            If  Ws-Account-No is Numeric                         17920068
+                   If  Ws-Account-No >  +0                              17930068
+                       Perform E510-Account-No                          17940068
+      *            Else                                                 17950068
+      *                Move  'F'         To    RTFCE110-I-Account-No-1-O17960068
+      *                                        (Ws-Idx)                 17970068
+      *                Move  'TF-SY-NOT-VALID-ACCOUNT'                  17980068
+      *                                  To    R400CH01-Message-Code    17990068
+      *                Move  'VAR1'      To    R400CH01-Message-Key(1)  18000068
+      *                Move  Ws-Account-No                              18010068
+      *                                  To    R400CH01-Message-Data(1) 18020068
+      *                                                                 18030068
+      *                Perform  Z700-Error-AE                           18040068
+                   End-If                                               18050068
+               End-If                                                   18060068
+                                                                        18070068
+               If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             18080068
+               And RTFCE110-I-Account-No-2-I (Ws-Idx) = 'U'             18090068
+                   Move  RTFCE110-I-Account-No-2-D (Ws-Idx)             18100068
+                                         To    Ws-Account               18110068
+      *            If  Ws-Account-No is Numeric                         18120068
+                   If  Ws-Account-No >  +0                              18130068
+                       Perform E510-Account-No                          18140068
+      *            Else                                                 18150068
+      *                Move  'F'         To    RTFCE110-I-Account-No-2-O18160068
+      *                                        (Ws-Idx)                 18170068
+      *                Move  'TF-SY-NOT-VALID-ACCOUNT'                  18180068
+      *                                  To    R400CH01-Message-Code    18190068
+      *                Move  'VAR1'      To    R400CH01-Message-Key(1)  18200068
+      *                Move  Ws-Account-No                              18210068
+      *                                  To    R400CH01-Message-Data(1) 18220068
+      *                Perform  Z700-Error-AE                           18230068
+                   End-If                                               18240068
+               End-If                                                   18250068
+                                                                        18260068
+               Add  1                    To    Ws-Idx                   18270068
+           End-Perform                                                  18280068
+      *                                                                 18290068
+           .                                                            18300068
+      *                                                                 18310068
+       E500-Check-Account-No-Ex.                                        18320068
+           Exit.                                                        18330068
+      *################################################################*18340068
+       E510-Account-No                   Section.                       18350068
+      *                                                                 18360068
+             Initialize                          R115L280-Find-Currency 18370068
+             Set R115L280-Version          To    True                   18380068
+             Move  R400CH01-Function       To    R115L280-Function      18390068
+             Move  R400CH01-Medium         To    R115L280-Medium        18400068
+      *                                                                 18410068
+             Move  RTFCE110-I-Fin-Inst-No-D                             18420068
+                                           To    R115L280-In-Fin-Inst-No18430068
+             Move  Ws-Account-No           To    R115L280-In-Account-No 18440068
+      *                                                                 18450068
+             Call  'F115L280'              Using R115L280-Find-Currency 18460068
+                                                 R7919999-Error-Area    18470068
+             End-Call                                                   18480068
+      *                                                                 18490068
+             Evaluate True                                              18500068
+               When R7919999-Return-Abend                               18510068
+                 Move  'E511'              To    R7919999-Paragraph     18520068
+                 Move  'FM'                To    R400CH01-Message-Code  18530068
+                 Perform Z900-Abend                                     18540068
+                                                                        18550068
+               When R7919999-Return-Error                               18560068
+                 Move  'E512'              To    R7919999-Paragraph     18570068
+                 Move  'FM'                To    R400CH01-Message-Code  18580068
+                 Perform Z700-Error-AE                                  18590068
+                                                                        18600068
+               When R7919999-Return-OK                                  18610068
+                 Continue                                               18620068
+             End-Evaluate                                               18630068
+      *                                                                 18640068
+           .                                                            18650068
+      *                                                                 18660068
+       E510-Account-No-Ex.                                              18670068
+           Exit.                                                        18680068
+      *################################################################*18690068
+       E600-Check-Geo-Country-Code       Section.                       18700068
+      *                                                                 18710068
+           Move  1                       To    Ws-Idx                   18720068
+           Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   18730068
+                                                                        18740068
+               If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             18750068
+               And RTFCE110-I-Geo-Code-I (Ws-Idx)     = 'U'             18760068
+                   If  RTFCE110-I-Geo-Code-D (Ws-Idx)                   18770068
+                                     is Numeric                         18780068
+                   and RTFCE110-I-Geo-Code-D (Ws-Idx) > 0               18790068
+                       Perform E610-Geo-Code                            18800068
+                   Else                                                 18810068
+                      If  RTFCE110-I-Geo-Code-D (Ws-Idx)                18820068
+                                     Not = Spaces                       18830068
+                      and RTFCE110-I-Geo-Code-D (Ws-Idx)                18840068
+                                     Not = 0                            18850068
+                           Move  'F'     To    RTFCE110-I-Account-No-1-O18860068
+                                               (Ws-Idx)                 18870068
+                           Move  'DB-OAAC-NF'                           18880068
+                                         To    R400CH01-Message-Code    18890068
+                           Perform  Z700-Error-AE                       18900068
+                      End-If                                            18910068
+                   End-If                                               18920068
+               End-If                                                   18930068
+                                                                        18940068
+               If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             18950068
+               And RTFCE110-I-Country-Code-I (Ws-Idx) = 'U'             18960068
+               And RTFCE110-I-Country-Code-D (Ws-Idx) Not = Spaces      18970068
+                       Perform E620-Country-Code                        18980068
+               End-If                                                   18990068
+                                                                        19000068
+               If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             19010068
+               And RTFCE110-I-Selected-D (Ws-Idx)     = 'Y'             19020068
+               And RTFCE110-I-Country-Code-I (Ws-Idx) = 'U'             19030068
+               And RTFCE110-I-Geo-Code-I (Ws-Idx)     = 'U'             19040068
+                   If  RTFCE110-I-Country-Code-D (Ws-Idx) = Spaces      19050068
+                   and RTFCE110-I-Geo-Code-D (Ws-Idx) = 0               19060068
+                       Move RTFCE110-I-Type-D (Ws-Idx)                  19070068
+                                         To    Wb-Role-Type             19080068
+                       Perform E330-Read-SYS-Code                       19090068
+                       Move  'F'         To    RTFCE110-I-Type-O        19100068
+                                                   (Ws-Idx)             19110068
+                       Move  'VAR1'      To    R400CH01-Message-Key(1)  19120068
+                       Move  R115ISC0-Description                       19130068
+                                         To    R400CH01-Message-Data(1) 19140068
+                       Move  'TF-SY-NO-GEO-COUNTRY'                     19150068
+                                         To    R400CH01-Message-Code    19160068
+                       Perform  Z700-Error-AE                           19170068
+                   End-If                                               19180068
+               End-If                                                   19190068
+                                                                        19200068
+               Add  1                    To    Ws-Idx                   19210068
+           End-Perform                                                  19220068
+      *                                                                 19230068
+           .                                                            19240068
+      *                                                                 19250068
+       E600-Check-Geo-Country-Code-Ex.                                  19260068
+           Exit.                                                        19270068
+      *################################################################*19280068
+       E610-Geo-Code                     Section.                       19290068
+      *                                                                 19300068
+           Initialize                          BPOXING0-PO-NC-NOR-GEO   19310068
+           Set   BPOXING0-Eyecatcher     To    True                     19320068
+           Set   BPOXING0-Version        To    True                     19321069
+           Set   BPOXING0-In-Select      To    True                     19330068
+           Move  RTFCE110-I-Geo-Code-D (Ws-Idx)                         19340068
+                                         To    BPOXING0-In-PONG-GEO-CODE19350068
+      *                                                                 19360075
+           Call  'BPOXING0'              Using BPOXING0-PO-NC-NOR-GEO   19370068
+           End-Call                                                     19390068
+      *                                                                 19400068
+           If  Not R791ERRX-State-Ok                                    19420071
+               Move  'E611'                TO R791ERR0-In-Paragraph-Id  19430071
+               Perform Z300-Call-Trace-R7919999-2-Old                   19440071
+           End-If                                                       19450071
+      *                                                                 19580068
+           .                                                            19590068
+      *                                                                 19600068
+       E610-Geo-Code-Ex.                                                19610068
+           Exit.                                                        19620068
+      *################################################################*19630068
+       E620-Country-Code                 Section.                       19640068
+      *                                                                 19650068
+           Initialize                          R791I060-Land            19660068
+           Set   R791I060-Versjon        To    True                     19670068
+           Set   R791I060-In-Select      To    True                     19680068
+      *                                                                 19690068
+           Move  RTFCE110-I-Country-Code-D (Ws-Idx)                     19700068
+                                         To    R791I060-In-ISO-Kode-X2  19710068
+      *                                                                 19720068
+           Call  'F791I060'              Using R791I060-Land            19730068
+                                               R7919999-Error           19740068
+           End-Call                                                     19750068
+      *                                                                 19760068
+             Evaluate True                                              19770068
+               When R7919999-Return-Abend                               19780068
+                 Move  'E621'              To    R7919999-Paragraph     19790068
+                 Move  'FM'                To    R400CH01-Message-Code  19800068
+                 Perform Z900-Abend                                     19810068
+                                                                        19820068
+               When R7919999-Return-Error                               19830068
+                 Move  'E622'              To    R7919999-Paragraph     19840068
+      *          Move R791I060-Meldings-Kode                            19850068
+      *                                    To    R400CH01-Message-Code  19860068
+                 Move  'FM'                To    R400CH01-Message-Code  19870068
+                 Perform Z700-Error-AE                                  19880068
+                                                                        19890068
+               When R7919999-Return-OK                                  19900068
+                 Continue                                               19910068
+             End-Evaluate                                               19920068
+      *                                                                 19930068
+           .                                                            19940068
+      *                                                                 19950068
+       E620-Country-Code-Ex.                                            19960068
+           Exit.                                                        19970068
+      *################################################################*19980068
+      *E700-Check-Bic-Code               Section.                       19990068
+      *                                                                 20000068
+      *    Move  1                       To    Ws-Idx                   20010068
+      *    Perform Until Ws-Idx > Ws-Max-Occ-Item-Tab                   20020068
+      *                                                                 20030068
+      *        If  RTFCE110-I-Type-I (Ws-Idx)         = 'U'             20040068
+      *        And RTFCE110-I-Bic-Swift-I (Ws-Idx)    = 'U'             20050068
+      *        And RTFCE110-I-Custm-Type-I (Ws-Idx)   = 'U'             20060068
+      *        And RTFCE110-I-Custm-Type-D (Ws-Idx)   = 'B'             20070068
+      *                Perform E710-Bic-Code                            20080068
+      *        End-If                                                   20090068
+      *        Add  1                    To    Ws-Idx                   20100068
+      *    End-Perform                                                  20110068
+      *                                                                 20120068
+      *    .                                                            20130068
+      *                                                                 20140068
+      *E700-Check-Bic-Code-Ex.                                          20150068
+      *    Exit.                                                        20160068
+      *################################################################*20170068
+      *E710-Bic-Code                     Section.                       20180068
+      *                                                                 20190068
+      *    Initialize                          R116IBI0-Bic             20200068
+      *                                                                 20210068
+      *    Set   R116IBI0-Version        To    True                     20220068
+      *    Set   R116IBI0-In-Select      To    True                     20230068
+      *                                                                 20240068
+      *    Move  RTFCE110-I-Bic-Swift-D (Ws-Idx)                        20250068
+      *                                  To    R116IBI0-In-Bic-Code     20260068
+      *                                                                 20270068
+      *    Call  'F116IBI0'              Using R116IBI0-Bic             20280068
+      *                                        R7919999-Error-Area      20290068
+      *    End-Call                                                     20300068
+      *                                                                 20310068
+      *    Evaluate True                                                20320068
+      *        When R7919999-Return-Abend                               20330068
+      *          Move  'E711'              To    R7919999-Paragraph     20340068
+      *          Move  'FM'                To    R400CH01-Message-Code  20350068
+      *          Perform Z900-Abend                                     20360068
+      *                                                                 20370068
+      *        When R7919999-Return-Error                               20380068
+      *          Move  'E712'              To    R7919999-Paragraph     20390068
+      *          Move  'FM'                To    R400CH01-Message-Code  20400068
+      *          Perform Z700-Error-AE                                  20410068
+      *                                                                 20420068
+      *        When R7919999-Return-OK                                  20430068
+      *          Continue                                               20440068
+      *    End-Evaluate                                                 20450068
+      *                                                                 20460068
+      *    .                                                            20470068
+      *                                                                 20480068
+      *E710-Bic-Code-Ex.                                                20490068
+      *    Exit.                                                        20500068
+      *################################################################*20510068
+      * Set Warning status                                             *20520068
+      *                                                                *20530068
+      *----------------------------------------------------------------*20540068
+      *<META Z600-ERROR-AW>                                             20550068
+       Z600-Error-AW                     Section.                       20560068
+      *                                                                 20570068
+      *    Set   R7919999-Return-Warning To    True                     20580068
+      *    Move  'FTFCK110'              To    R400CH01-Message-Text    20590068
+           Set   R7919999-Return-Warning To    True                     20600068
+           If    R400CH01-Message-Code   =     'FM'                     20610068
+                 String   'FTFCK110'           Delimited By Size        20620068
+                          ': '                 Delimited By Size        20630068
+                       R7919999-Message        Delimited By Size        20640068
+                                         Into  R400CH01-Message-Text    20650068
+                 End-String                                             20660068
+           Else                                                         20670068
+                 Move  'FTFCK110'        To    R400CH01-Message-Text    20680068
+           End-If                                                       20690068
+           .                                                            20700068
+      *                                                                 20710068
+       Z600-Error-AW-Ex.                                                20720068
+           Exit.                                                        20730068
+      *</META>                                                          20740068
+                                                                        20750068
+      *################################################################*20760068
+      * Syntax Error status                                            *20770068
+      *                                                                *20780068
+      *----------------------------------------------------------------*20790068
+      *<META Z700-ERROR-AE>                                             20800068
+       Z700-Error-AE                     Section.                       20810068
+      *                                                                 20820068
+           Set   R7919999-Return-Error   To    True                     20830068
+           If    R400CH01-Message-Code   =     'FM'                     20840068
+                 String   'FTFCK110'           Delimited By Size        20850068
+                          ': '                 Delimited By Size        20860068
+                       R7919999-Message        Delimited By Size        20870068
+                                         Into  R400CH01-Message-Text    20880068
+                 End-String                                             20890068
+           Else                                                         20900068
+                 Move  'FTFCK110'        To    R400CH01-Message-Text    20910068
+           End-If                                                       20920068
+           .                                                            20930068
+      *                                                                 20940068
+       Z700-Error-AE-Ex.                                                20950068
+           Goback.                                                      20960068
+      *</META>                                                          20970068
+                                                                        20980068
+      *################################################################*20990068
+      * Severe error. Will genereate USER-ABEND in STG when the        *21000068
+      * function is executed in batch.                                 *21010068
+      *----------------------------------------------------------------*21020068
+      *<META Z800-ERROR-AS>                                             21030068
+       Z800-Error-AS                     Section.                       21040068
+      *                                                                 21050068
+           Set   R7919999-Return-Abend   To    True                     21060068
+           If    R400CH01-Message-Code   =     'FM'                     21070068
+                 String   'FTFCK110'           Delimited By Size        21080068
+                          ': '                 Delimited By Size        21090068
+                       R7919999-Message        Delimited By Size        21100068
+                                         Into  R400CH01-Message-Text    21110068
+                 End-String                                             21120068
+           Else                                                         21130068
+                 Move  'FTFCK110'        To    R400CH01-Message-Text    21140068
+           End-If                                                       21150068
+           .                                                            21160068
+      *                                                                 21170068
+       Z800-Error-AS-Ex.                                                21180068
+           Goback.                                                      21190068
+      *</META>                                                          21200068
+                                                                        21210068
+      *################################################################*21220068
+      * Severe error. Will genereate USER-ABEND in STG when the        *21230068
+      * function is executed in batch.                                 *21240068
+      *----------------------------------------------------------------*21250068
+      *<META Z900-ABEND>                                                21260068
+       Z900-Abend                        Section.                       21270068
+      *                                                                 21280068
+           Set   R7919999-Return-Abend   To    True                     21290068
+           If    R400CH01-Message-Code   =     'FM'                     21300068
+                 String   'FTFCK110'           Delimited By Size        21310068
+                          ': '                 Delimited By Size        21320068
+                       R7919999-Message        Delimited By Size        21330068
+                                         Into  R400CH01-Message-Text    21340068
+                 End-String                                             21350068
+           Else                                                         21360068
+                 Move  'FTFCK110'        To    R400CH01-Message-Text    21370068
+           End-If                                                       21380068
+      *                                                                 21390068
+      *----------------------------------------------------------------*21400068
+      *                                                                 21410068
+           If  R7919999-Return-Code      Not   Numeric                  21420068
+           or  Not R7919999-Return-Abend                                21430068
+               Move  +0                  To    R7919999-Module-Ind      21440068
+           End-If                                                       21450068
+           Add   +1                      To    R7919999-Module-Ind      21460068
+           If  R7919999-Module-Ind       Not >                          21470068
+                             ( Length    Of    R7919999-Module-Tab      21480068
+                             / Length    Of    R7919999-Module-Element )21490068
+               Move  'FTFCK110'          To    R7919999-Module-Name     21500068
+                                               (R7919999-Module-Ind)    21510068
+               Move  R7919999-Paragraph  To    R7919999-Module-Para     21520068
+                                               (R7919999-Module-Ind)    21530068
+           End-If                                                       21540068
+           Set   R7919999-Return-Abend   To    True                     21550068
+           .                                                            21560068
+      *                                                                 21570068
+       Z900-Abend-Ex.                                                   21580068
+           Goback.                                                      21590068
+      *</META>                                                          21600068
+      *                                                                 21610068
+      * NY ERROR-HANDLING                                               21630068
+       COPY S791ERX0.                                                   21640068
+       COPY S791ERR0.                                                   21650068
+       COPY S108ERRS.                                                   21660068
+      *                                                                 21661070
+       End Program FTFCK110.                                            21670070

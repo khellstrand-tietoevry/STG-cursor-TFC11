@@ -1,0 +1,6 @@
+           03  R791ERR0-Error.
+             05 R791ERR0-In-System-ID Pic X(02).
+             05 R791ERR0-In-Message-Id Pic X(30).
+             05 R791ERR0-In-Paragraph-Id Pic X(08).
+             05 R791ERR0-In-Var-Key Occurs 5 Pic X(10).
+             05 R791ERR0-In-Var-Data Occurs 5 Pic X(40).

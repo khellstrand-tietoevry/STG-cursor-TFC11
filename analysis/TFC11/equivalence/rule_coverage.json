@@ -1,0 +1,163 @@
+{
+  "system": "TFC11",
+  "verified_at": "2026-09-30",
+  "hardened_at": "2026-09-30",
+  "scope": "modernized/TFC11 Phases 1–6 + harden pass",
+  "p0_rules": 9,
+  "rules": [
+    {
+      "id": "RULE-001",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "Frozen legacy source anchor (comma decimal-point policy in FTFCH110)",
+      "tests": ["LegacySourcePolicyTest.rule001_ftfch110DeclaresCommaDecimalPoint"]
+    },
+    {
+      "id": "RULE-002",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "H orchestrator tests",
+      "tests": ["HModuleOrchestratorTest.rule002_*"]
+    },
+    {
+      "id": "RULE-003",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "K mandatory envelope",
+      "tests": ["KModuleValidatorTest.rule003_*"]
+    },
+    {
+      "id": "RULE-004",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "K party type missing",
+      "tests": ["KModuleValidatorTest.rule004_*"]
+    },
+    {
+      "id": "RULE-005",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "K + InitialCheckService C100/C102",
+      "tests": ["KModuleValidatorTest.rule005_*", "InitialCheckServiceTest.rule005_*"]
+    },
+    {
+      "id": "RULE-006",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "K InitialCheckOutcome port",
+      "tests": ["KModuleValidatorTest.rule006_*"]
+    },
+    {
+      "id": "RULE-007",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "Blank function and blank medium → C102 / TF-SY-FUNC-AND-MEDIUM",
+      "tests": [
+        "InitialCheckServiceTest.rule005_rejectsBlankFunction",
+        "InitialCheckServiceTest.rule007_rejectsBlankMedium",
+        "KModuleValidatorTest.rule007_rejectsBlankMediumInEnvelope"
+      ]
+    },
+    {
+      "id": "RULE-008",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "TracedInitialCheckBackend F102",
+      "tests": ["TracedInitialCheckBackendTest.rule008_*"]
+    },
+    {
+      "id": "RULE-009",
+      "priority": "P0",
+      "status": "PROVEN",
+      "evidence": "TracedInitialCheckBackend G001 + TFD05 exemption in code",
+      "tests": ["TracedInitialCheckBackendTest.rule009_*"]
+    },
+    {
+      "id": "RULE-010",
+      "priority": "P1",
+      "status": "PARTIAL",
+      "evidence": "Traced backend + f115i boundary when paSeqNo>0; f115r IPA0 module",
+      "tests": ["CustomerCreateBoundaryTest.readsContractAmountWhenPaSeqNoPositive", "OneHopHelperServicesTest.ipa0RequiresPositivePaSeqNo"]
+    },
+    {
+      "id": "RULE-011",
+      "priority": "P1",
+      "status": "PROVEN",
+      "evidence": "TracedInitialCheckBackend ACTUAL→WORK; f115i boundary",
+      "tests": ["CustomerCreateBoundaryTest.readsWorkTableWhenMainContractInProgress"]
+    },
+    {
+      "id": "RULE-012",
+      "priority": "P1",
+      "status": "PROVEN",
+      "evidence": "TracedInitialCheckBackend READ+SHOW skips F102 property gate",
+      "tests": ["TracedInitialCheckBackendTest.rule012_skipsPropertyCheckForReadShow"]
+    },
+    {
+      "id": "RULE-013",
+      "priority": "P1",
+      "status": "PROVEN",
+      "evidence": "LModuleLoader",
+      "tests": ["LModuleLoaderTest.rule013_*"]
+    },
+    {
+      "id": "RULE-014",
+      "priority": "P1",
+      "status": "PROVEN",
+      "evidence": "LModuleLoader",
+      "tests": ["LModuleLoaderTest.rule014_*"]
+    },
+    {
+      "id": "RULE-015",
+      "priority": "P1",
+      "status": "PROVEN",
+      "evidence": "FindCurrencyService + K FindCurrencyPort after initial check",
+      "tests": ["LExtServicesTest.rule015_l280FindsCurrencyFromAccountRead", "KModuleValidatorTest.rule015_invokesFindCurrencyWhenAccountPresent"]
+    },
+    {
+      "id": "RULE-016",
+      "priority": "P2",
+      "status": "PARTIAL",
+      "evidence": "E000 not on TracedInitialCheckBackend main path; happy path only",
+      "tests": ["InitialCheckServiceTest.rule005_tracedBackendHappyPath"]
+    },
+    {
+      "id": "RULE-017",
+      "priority": "P2",
+      "status": "N/A",
+      "evidence": "Generator policy; no runtime assertion required",
+      "tests": []
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "BPOXING0",
+      "status": "PROVEN",
+      "tests": ["StgBoundaryAdaptersTest.bpoxing0*", "KModuleValidatorTest.e600_*"]
+    },
+    {
+      "id": "F791I060",
+      "status": "PROVEN",
+      "tests": ["StgBoundaryAdaptersTest.f791i060*", "KModuleValidatorTest.e620_*"]
+    },
+    {
+      "id": "F7918030",
+      "status": "PROVEN",
+      "tests": ["StgBoundaryAdaptersTest.f7918030*", "HModuleOrchestratorTest.hModuleTracesInputAndUsesF7918030OnFailure"]
+    },
+    {
+      "id": "F791TRAC",
+      "status": "PROVEN",
+      "tests": ["StgBoundaryAdaptersTest.f791trac*", "HModuleOrchestratorTest.hModuleTracesInputAndUsesF7918030OnFailure"]
+    }
+  ],
+  "summary": {
+    "p0_proven": 9,
+    "p0_partial": 0,
+    "p0_deferred": 0,
+    "mvn_tests_run": 46,
+    "mvn_failures": 0,
+    "brief_phases_complete": 6,
+    "hardening_complete": true
+  }
+}

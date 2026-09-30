@@ -1,0 +1,166 @@
+      *################################################################*00010000
+      *                                                                 00020000
+      * FD International Services                                       00030000
+      *                                                                 00040000
+      * Copy-area R115ICU0.                                             00050001
+      *                                                                 00060000
+      * Interface for all database access on table TF_Customer.         00070001
+      *                                                                 00080000
+      * The interface kan read one spesific occurence,                  00090000
+      * or several occurences, fully or partly qualified.               00100004
+      *                                                                 00120000
+      * When reading several occurences, one must always start with     00130000
+      * -In-Get-1st, and continue with -In-Get-Next.                    00140000
+      *                                                                 00150000
+      * NB!  There are several key-fields, which may be used            00160000
+      *      differently depending on the need.                         00170000
+      *      See seperate description below.                            00180000
+      *                                                                 00190000
+      *                                                                 00200000
+      * An ordinary call may look like this:                            00210000
+      *                                                                 00220000
+      *    Initialize                          R115ICU0-Customer        00230001
+      *    Set   R115ICU0-Version        To    True                     00240001
+      *    Set   R115ICU0-In-Select      To    True                     00250001
+      *                                                                 00251002
+      *    Move  &fin-inst-id            To    R115iCU0-In-Fin-Inst-ID  00251003
+      *    Move  &customer-id            To    R115iCU0-In-Customer-ID  00251004
+      *                                                                 00254213
+      *    Call  'F115ICU0'              Using R115ICU0-Customer        00330001
+      *                                        R7919999-Error           00340000
+      *    End-Call                                                     00350000
+      *                                                                 00360000
+      *    Evaluate True                                                00370000
+      *      When R7919999-Retur-Abend                                  00380000
+      *        Move  '&&&&'              To    R7919999-Paragraf        00390000
+      *        Perform Z900-Abend                                       00400000
+      *                                                                 00410000
+      *      When R7919999-Retur-Feil                                   00420000
+      *        ...not found...                                          00430000
+      *                                                                 00440000
+      *      When R7919999-Retur-OK                                     00450000
+      *        ...found...                                              00460000
+      *                                                                 00470000
+      *    End-Evaluate                                                 00480000
+      *                                                                 00490000
+      *################################################################*00500000
+      * Date ! Si! Change description                            ! 3A ! 00510000
+      *------+---+-----------------------------------------------+----+ 00520000
+      *160101!NDL! New copy area                                 !LT12! 00530000
+      *################################################################*00540000
+      *                                                                 00550000
+         03  R115ICU0-Customer.                                         00560001
+      *                                                                 00570000
+           05  R115ICU0-Version-No              Pic  X(08).             00580001
+             88  R115ICU0-Version                    Value '20010115'.  00590001
+      *                                                                 00600000
+      *----------------------------------------------------------------*00610000
+      *                                                                 00620000
+           05  R115ICU0-Qualification.                                  00630001
+      *                                                                 00640000
+             10  R115ICU0-In-Action             Pic  X(16).             00650001
+               88  R115ICU0-In-Get-1st               Value 'GET-1ST'.   00660001
+               88  R115ICU0-In-Get-Next              Value 'GET-NEXT'.  00670001
+               88  R115ICU0-In-Insert                Value 'INSERT'.    00680001
+               88  R115ICU0-In-Update                Value 'UPDATE'.    00690001
+               88  R115ICU0-In-Delete                Value 'DELETE'.    00700001
+               88  R115ICU0-In-Select                Value 'SELECT'.    00830001
+      *                                                                 00850000
+      * There are several key-fields, which may be used differently     00860000
+      * depending on the need.                                          00870000
+      *                                                                 00880000
+      * For Insert, use the Data area for all fields.                   00891002
+      *                                                                 00892002
+      * For Select, Update and Delete, use:                             00892003
+      *     - Fin-Inst-No or Fin-Inst-ID                                00892006
+      *     - Customer-No or Customer-ID                                00892007
+      *                                                                 00892009
+      * For cursor (Get-1st / Get-Next), use:                           00980000
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      00980100
+      *     - Optional: Bic-Code  (e.g. 'HANDNON') with mask            00990009
+      *       buth minimun 4, 6 or more characters                      00990010
+      *                 (If used, Fin-Inst is mandatory)                00990020
+      * OR                                                              01030000
+      * For cursor (Get-1st / Get-Next), use:                           01030100
+      *     - Optional: Fin-Inst-No or Fin-Inst-ID                      01030200
+      *     - Optional: ID-Surname  with mask                           01030210
+      *     - Optional: Country-Code                                    01030211
+      *                 (If used, Fin-Inst is mandatory)                01030230
+      *                                                                 01030240
+      *                                                                 01030300
+             10  R115ICU0-In-Key.                                       01040001
+      *                                                                 01040003
+      *        Fin-Inst is mandatory.                                   01040004
+      *        It is optional wether you use Fin-Inst-No or Fin-Inst-ID.01040005
+               15  R115iCU0-In-Fin-Inst.                                01040006
+                 20  R115iCU0-In-Fin-Inst-No    Pic  X(18).             01040007
+                 20  R115iCU0-In-Fin-Inst-ID    Pic S9(18)       Comp-3.01040008
+      *                                                                 01040009
+      *        Customer-ID or Customer-No is mandatory for              01040010
+      *        Select/Update/Delete.                                    01040011
+      *        It is optional wether you use Customer-No or Customer-ID.01040012
+               15  R115iCU0-In-Customer.                                01040030
+                 20  R115iCU0-In-Customer-No    Pic S9(11)       Comp-3.01040040
+                 20  R115iCU0-In-Customer-ID    Pic S9(11)       Comp-3.01040050
+      *                                                                 01040060
+      *        Bic-Code is only relevant for cursor (Get-1st/Get-Next)  01040090
+               15  R115ICU0-In-Bic-Code.                                01041012
+                 20  R115ICU0-In-Bank           pic X(4).               01050002
+                 20  R115ICU0-In-Country        pic X(2).               01060002
+                 20  R115ICU0-In-Location       pic X(2).               01061002
+                 20  R115ICU0-In-Branch         pic X(3).               01062002
+      *                                                                 01062003
+      *        Surname and Country-Code is only relevant for cursor     01062004
+      *        (Get-1st/Get-Next)                                       01062005
+               15  R115ICU0-In-ID-Surname       Pic X(15).              01062006
+               15  R115ICU0-In-Country-Code     Pic X(02).              01062007
+      *                                                                 01070000
+      * When performing a Get-1st-call one may ask for the total        01140000
+      * number of rows complying with the qualification.                01150000
+      *                                                                 01160000
+             10  R115ICU0-In-Code-Count         Pic  X(10).             01170001
+               88  R115ICU0-In-CC-Count              Value 'COUNT'.     01180001
+      *                                                                 01190000
+      *----------------------------------------------------------------*01200000
+      *                                                                 01210000
+           05  R115ICU0-Data.                                           01220001
+      *                                                                 01230000
+             10  R115ICU0-Key.                                          01254005
+               15  R115ICU0-Fin-Inst-ID         Pic S9(18)       Comp-3.01254006
+               15  R115ICU0-Customer-ID         Pic S9(11)       Comp-3.01254007
+               15  R115ICU0-Customer-No         Pic S9(11)       Comp-3.01254008
+               15  R115ICU0-Bic-Code.                                   01254009
+                 20  R115ICU0-Bic-Bank          pic X(4).               01254010
+                 20  R115ICU0-Bic-Country       pic X(2).               01254011
+                 20  R115ICU0-Bic-Location      pic X(2).               01254012
+                 20  R115ICU0-Bic-Branch        pic X(3).               01254013
+               15  R115iCU0-Surname             Pic X(35).              01254014
+               15  R115iCU0-ID-Surname          Pic X(15).              01254014
+               15  R115iCU0-Country-Code        Pic X(02).              01254015
+                                                                        01254016
+             10  Filler.                                                01254020
+               15  R115iCU0-Fin-Inst-No         Pic  X(18).             01254030
+      *                                                                 01330000
+             10  R115ICU0-Firstname             Pic  X(35).             01360003
+             10  R115ICU0-Address-1             Pic  X(35).             01370003
+             10  R115ICU0-Address-2             Pic  X(35).             01370004
+             10  R115ICU0-Address-3             Pic  X(35).             01370005
+             10  R115ICU0-Address-4             Pic  X(35).             01370006
+             10  R115ICU0-Sector-Code           Pic S9(04)       Comp.  01370008
+             10  R115ICU0-Postal-Code           Pic S9(04)       Comp.  01370009
+             10  R115ICU0-Destination           Pic  X(32).             01370010
+             10  R115ICU0-Geo-Code              Pic S9(04)       Comp.  01370030
+             10  R115ICU0-Terminated-Date       Pic S9(08)       Comp-3.01370030
+      *                                                                 01460303
+      * The following accumulators are only relevant when performing    01461003
+      * Get-1st or Get-Next.                                            01470000
+      * Row-No starts on 1 when doing Get-1st, and increases by 1 for   01480000
+      * each Get-Next.                                                  01490000
+      * Total-Rows is set when doing Get-1st, but ONLY if the           01500000
+      * In-CC-Count is set. The field will tell you how many rows       01510000
+      * that complies with your qualification.                          01520000
+      *                                                                 01530000
+             10  R115ICU0-Out-Accumulators.                             01540001
+               15  R115ICU0-Out-Row-No          Pic S9(11)       Comp-3.01550001
+               15  R115ICU0-Out-Total-Rows      Pic S9(11)       Comp-3.01560001
+      *                                                                 01570000

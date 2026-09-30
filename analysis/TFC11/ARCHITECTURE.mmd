@@ -1,0 +1,24 @@
+flowchart TB
+  subgraph entry [TFC11 STG entry]
+    H[FTFCH110 H-module]
+    K[FTFCK110 K-module]
+    L[FTFCL110 L-module]
+  end
+  H --> K
+  H --> L
+  K --> L050[F115L050 initial check in-repo]
+  K --> IPA0[F115IPA0 in-repo]
+  K --> IRP0[F115IRP0 in-repo]
+  K --> ISC0[F115ISC0 in-repo]
+  K --> ISR0[F115ISR0 in-repo]
+  K --> L280[F115L280 in-repo]
+  K --> ExtGeo[BPOXING0 F791I060 external]
+  L --> ICU0[F115ICU0 in-repo]
+  L --> IMC0[F115IMC0 in-repo]
+  L --> IRP0
+  L --> ITP0[F115ITP0 in-repo]
+  L --> L030[F115L030 in-repo]
+  L --> L140[F115L140 in-repo]
+  L050 --> ExtI[External F115IPC0 F115ICH0 etc]
+  ICU0 --> ExtCopy[40 missing COPY members]
+  IMC0 --> ExtCopy

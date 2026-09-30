@@ -1,0 +1,410 @@
+000100 Identification Division.                                         00010034
+000200 Program-ID. F115L240.                                            00020035
+000300 Author.  Rune Mesel.                                             00030035
+000400*################################################################*00040035
+000500* FD Trade Finance                                                00050035
+000600*                                                                 00060035
+000700* The module will extract the SWIFT address from KUNDE, but not   00070035
+000800* from tast parts                                                 00080035
+000900*                                                                 00090035
+000910* If more customer-information is needed, or tast-part,           00091035
+000920* use F115L160 instead.                                           00092035
+000930*                                                                 00093035
+000940*################################################################*00094035
+000950* Date ! Si! Change description                            ! 3A ! 00095035
+000960*------+---+-----------------------------------------------+----+ 00096035
+000970*010399!RM ! New module                                    !LG10! 00097035
+000980*################################################################*00098035
+000990 Environment Division.                                            00099035
+001000 Configuration Section.                                           00100035
+001100 Special-Names.                                                   00110035
+001200     Decimal-Point Is Comma.                                      00120035
+001300*                                                                 00130035
+001400*################################################################*00140035
+001500 Data Division.                                                   00150035
+001600 Working-Storage Section.                                         00160035
+001700*                                                                 00170035
+001800 01  Filler.                                                      00180035
+001900*                                                                 00190035
+002000     05  Ws-Role-Type              Pic  X(05).                    00200035
+002100*                                                                 00210035
+002200**** 05  Ws-Fin-Inst-No            Pic  X(18).                    00220035
+002300**** 05  Filler                    Redefines Ws-Fin-Inst-No.      00230035
+002400****     10  Ws-Fin-Inst-No-Num    Pic  9(04).                    00240035
+002500****     10  Filler                Pic  9(14).                    00250035
+002600*                                                                 00260035
+002700     05  W-IO-Length               Pic S9(04)              Comp.  00270035
+002800     05  WD-Length                 Pic  Z.ZZ9.                    00280035
+002900*                                                                 00290035
+003000*----------------------------------------------------------------*00300035
+003100* Internal area:                                                  00310035
+003200*                                                                 00320035
+003300 01  W-Int-IO-Area.                                               00330035
+003400     Copy R115L240.                                               00340035
+003500*                                                                 00350035
+003600*----------------------------------------------------------------*00360035
+003700* Assorted copy-areas:                                            00370035
+003800*                                                                 00380035
+003900 01  Filler.                                                      00390035
+004000     Copy R728IGC0.                                               00400035
+004100 01  Filler.                                                      00410035
+004200     Copy R728L100.                                               00420035
+004300 01  Filler.                                                      00430035
+004400     COPY R728IGB0.                                               00440035
+004500 01  Filler.                                                      00450035
+004600     COPY R728IGA0.                                               00460035
+004700*                                                                 00470035
+004800     Copy R7918030.                                               00480035
+004900     COPY R7918110.                                               00490035
+005000*                                                                 00500035
+005100*################################################################.00510035
+005200 Linkage Section.                                                 00520035
+005300*                                                                 00530035
+005400 01  L-Ext-IO-Area                 Pic  X(560).                   00540035
+005500 Copy R7919999.                                                   00550035
+005600*                                                                 00560035
+005700*################################################################.00570035
+005800 Procedure Division                Using L-Ext-IO-Area            00580035
+005900                                         R7919999-Error-Area.     00590035
+006000*                                                                 00600035
+006100 A000-Main                         Section.                       00610035
+006200*                                                                 00620035
+006300*                                                                 00630035
+006400     Perform ZI00-Konv-Input-Version                              00640035
+006500     Perform C000-Interface                                       00650035
+006600     Perform ZO00-Konv-Output-Version                             00660035
+006700*                                                                 00670035
+006800     Goback.                                                      00680035
+006900*################################################################*00690035
+007000 B000-Initialize                   Section.                       00700035
+007100*                                                                 00710035
+007200     Set   R7919999-Return-OK      To  True                       00720035
+007300*                                                                 00730035
+007400*  Fetch EXEC date from PO                                        00740035
+007500*                                                                 00750035
+007600     Initialize                          R7918110-System-Datoer   00760035
+007700     Set   R7918110-Versjon        To    True                     00770035
+007800     Call  'F7918110'              Using R7918110-System-Datoer   00780035
+007900                                         R7919999-Error           00790035
+008000     End-Call                                                     00800035
+008100     If  Not R7919999-Retur-OK                                    00810035
+008200         Move  'B001'              To    R7919999-Paragraf        00820035
+008300         Perform Z900-Abend                                       00830035
+008400     End-If                                                       00840035
+008500*                                                                 00850035
+008600*****Move R115L240-In-Fin-Inst-No  To    Ws-Fin-Inst-No           00860035
+008700*                                                                 00870035
+008800     Initialize                          R115L240-Data            00880035
+008900*                                                                 00890035
+009000     .                                                            00900035
+009100*################################################################.00910035
+009200 C000-Interface                    Section.                       00920035
+009300*                                                                 00930035
+009400     Perform B000-Initialize                                      00940035
+009500*                                                                 00950035
+009600     Initialize                        R728IGA0-Adresse-Grp       00960035
+009700     Set   R728IGA0-In-Get-1st     To  True                       00970035
+009800     Perform D100-Read-Address-Group                              00980035
+009900*                                                                 00990035
+010000* Loop through all address groups                                 01000035
+010100*                                                                 01010035
+010200     Perform Until R7919999-Return-Error                          01020035
+010300*                                                                 01030035
+010400        Perform C200-Handle-Adress-Group                          01040035
+010500*                                                                 01050035
+010600        Set   R728IGA0-In-Get-Next To  True                       01060035
+010700        Perform D100-Read-Address-Group                           01070035
+010800     End-Perform                                                  01080035
+010900*                                                                 01090035
+011000     If R7919999-Return-Error                                     01100035
+011100        Initialize R7919999-Error                                 01110035
+011200     End-If                                                       01120035
+011300*                                                                 01130035
+011400     .                                                            01140035
+011500*################################################################.01150035
+011600 C200-Handle-Adress-Group          Section.                       01160035
+011700*                                                                 01170035
+011800     Initialize                        R728IGB0-Adresse           01180035
+011900     Set   R728IGB0-In-Get-1st     To  True                       01190035
+012000     Perform D200-Read-Address                                    01200035
+012100*                                                                 01210035
+012200     Perform Until R7919999-Return-Error                          01220035
+012300*                                                                 01230035
+012400        If  (   R728IGB0-Gyld-Fra-Dato  <  R7918110-Ut-Kjore-Dato 01240035
+012500             Or R728IGB0-Gyld-Fra-Dato  =  R7918110-Ut-Kjore-Dato)01250035
+012600        and R728IGB0-Gyld-Til-Dato  >  R7918110-Ut-Kjore-Dato     01260035
+012700                                                                  01270035
+012800            Perform C300-Handle-Adress-Line                       01280035
+012900        End-if                                                    01290035
+013000*                                                                 01300035
+013100        Set   R728IGB0-In-Get-Next To  True                       01310035
+013200        Perform D200-Read-Address                                 01320035
+013300     End-Perform                                                  01330035
+013400*                                                                 01340035
+013500     .                                                            01350035
+013600*################################################################.01360035
+013700 C300-Handle-Adress-Line           Section.                       01370035
+013800*                                                                 01380035
+013900     Perform D300-Read-Address-Line                               01390035
+014000     Perform D400-Unpack-Adr-Line                                 01400035
+014100*                                                                 01410035
+014200* We may end up with more than on SWIFT address, if this is       01420035
+014300* the case, we will return to calling program with the last       01430035
+014400* SWIFT address which is active                                   01440035
+014500*                                                                 01450035
+014600     If  R728L100-Swiftadresse Not  =    Space                    01460035
+014700         Move R728L100-Swiftadresse To   R115L240-Swift-Address   01470035
+014800     End-If                                                       01480035
+014900*                                                                 01490035
+015000     .                                                            01500035
+015100*################################################################.01510035
+015200 D100-Read-Address-Group           Section.                       01520035
+015300*                                                                 01530035
+015400*                                                                 01540035
+015500     Set   R728IGA0-Versjon        To  True                       01550035
+015600*                                                                 01560035
+015700*****Move  Ws-Fin-Inst-No-Num      To  R728IGA0-In-Fra-Konsern-Nr 01570035
+015710     Move  R115L240-In-Fin-Inst-ID To  R728IGA0-In-Fra-Konsern-ID 01571040
+015711*    Move  R115L240-In-Fin-Inst-No To  R728IGA0-In-Konsern-Nr     01571140
+015800     Move  R115L240-In-Cust-ID     To  R728IGA0-In-Fra-Kunde-ID   01580035
+015900*                                                                 01590035
+016000     Call  'F728IGA0'              Using R728IGA0-Adresse-Grp     01600035
+016100                                         R7919999-Error           01610035
+016200     End-Call                                                     01620035
+016300*                                                                 01630035
+016400     Evaluate True                                                01640035
+016500      When  R7919999-Retur-Abend                                  01650035
+016600        Move 'D101'                To  R7919999-Paragraf          01660035
+016700        Perform Z900-Abend                                        01670035
+016800*                                                                 01680035
+016900     End-Evaluate                                                 01690035
+017000*                                                                 01700035
+017100     .                                                            01710035
+017200*################################################################.01720035
+017300 D200-Read-Address                 Section.                       01730035
+017400*                                                                 01740035
+017500     Set   R728IGB0-Versjon      To True                          01750035
+017600*                                                                 01760035
+017700*****Move  Ws-Fin-Inst-No-Num    To R728IGB0-In-Fra-Konsern-Nr    01770035
+017701     Move  R115L240-In-Fin-Inst-ID                                01770135
+017710                                 To R728IGB0-In-Fra-Konsern-ID    01771035
+017800     Move  R728IGA0-Lopenummer   To R728IGB0-In-Fra-Adr-Grp-Lopenr01780035
+017900     Move  R115L240-In-Cust-ID   To R728IGB0-In-Fra-Kunde-ID      01790035
+018000*                                                                 01800035
+018100     Set   R728IGB0-In-Fra-Swift To True                          01810035
+018200*                                                                 01820035
+018300*    Move  R7918110-Ut-Kjore-Dato                                 01830035
+018400*                                To R728IGB0-In-Gyldig-Fra-Dato   01840035
+018500*                                                                 01850035
+018600     Call  'F728IGB0'         Using R728IGB0-Adresse              01860035
+018700                                    R7919999-Error                01870035
+018800     End-Call                                                     01880035
+018900*                                                                 01890035
+019000     Evaluate True                                                01900035
+019100      When  R7919999-Retur-Abend                                  01910035
+019200        Move 'D201'                To  R7919999-Paragraf          01920035
+019300        Perform Z900-Abend                                        01930035
+019400*                                                                 01940035
+019500     End-Evaluate                                                 01950035
+019600*                                                                 01960035
+019700     .                                                            01970035
+019800*################################################################.01980035
+019900 D300-Read-Address-Line           Section.                        01990035
+020000*                                                                 02000035
+020100     Initialize                        R728IGC0-Adresse-Linje     02010035
+020200     Set   R728IGC0-Versjon        To  True                       02020035
+020300     Set   R728IGC0-In-Select      To  True                       02030035
+020400*                                                                 02040035
+020500*****Move  Ws-Fin-Inst-No-Num      To  R728IGC0-In-Fra-Konsern-Nr 02050035
+020520     Move  R115L240-In-Fin-Inst-ID To  R728IGC0-In-Fra-Konsern-ID 02052035
+020600     Move  R115L240-In-Cust-ID     To  R728IGC0-In-Kunde-ID       02060035
+020700     Move  R728IGA0-Lopenummer     To  R728IGC0-In-Adr-Grp-Lopenr 02070035
+020800     Move  R728IGB0-Lopenummer     To  R728IGC0-In-Adr-Lopenr     02080035
+020900*                                                                 02090035
+021000     Move  +1                      To  R728IGC0-In-Adr-Linje-Nr   02100035
+021100*                                                                 02110035
+021200                                                                  02120035
+021300     Call  'F728IGC0'            Using R728IGC0-Adresse-Linje     02130035
+021400                                       R7919999-Error             02140035
+021500     End-Call                                                     02150035
+021600*                                                                 02160035
+021700     Evaluate True                                                02170035
+021800      When  R7919999-Retur-Abend                                  02180035
+021900        Move 'D301'                To  R7919999-Paragraf          02190035
+022000        Perform Z900-Abend                                        02200035
+022100*                                                                 02210035
+022200     End-Evaluate                                                 02220035
+022300*                                                                 02230035
+022400     .                                                            02240035
+022500 D300-Ex.                                                         02250035
+022600     Exit.                                                        02260035
+022700*#################################################################02270035
+022800 D400-Unpack-Adr-Line              Section.                       02280035
+022900*                                                                 02290035
+023000     Initialize                          R728L100-Pakk-Adresse    02300035
+023100     Set   R728L100-Versjon        To    True                     02310035
+023200     Set   R728L100-In-Pakk-Ut     To    True                     02320035
+023300     Move  R728IGC0-Adr-Linje-Tekst                               02330035
+023400                                   To    R728L100-Pakkede-Data    02340035
+023500     Call  'F728L100'              Using R728L100-Pakk-Adresse    02350035
+023600                                         R7919999-Error           02360035
+023700     End-Call                                                     02370035
+023800                                                                  02380035
+023900     Evaluate True                                                02390035
+024000       When  R7919999-Retur-Abend                                 02400035
+024100         Move  'D401'              To    R7919999-PARAGRAF        02410035
+024200         Perform  Z900-Abend                                      02420035
+024300*                                                                 02430035
+024400     End-Evaluate                                                 02440035
+024500*                                                                 02450035
+024600     .                                                            02460035
+024700 D400-Ex.                                                         02470035
+024800     Exit.                                                        02480035
+024900*################################################################*02490035
+025000 ZI00-Konv-Input-Version           Section.                       02500035
+025100*                                                                 02510035
+025200* Version control.                                                02520035
+025300* If conversion is needed, we call the conversion module.         02530035
+025400*                                                                 02540035
+025500     Set   R115L240-Version        To    True                     02550035
+025600     Move  Length                  Of    R115L240-Find-SWIFT-Adr  02560035
+025700                                   To    W-IO-Length              02570035
+025800*                                                                 02580035
+025900     Evaluate True                                                02590035
+026000       When L-Ext-IO-Area (1:8)    =     R115L240-Version-No      02600035
+026100       and  Length                 Of    L-Ext-IO-Area            02610035
+026200                                   Not < W-IO-Length              02620035
+026300         Move  L-Ext-IO-Area (1:W-IO-Length)                      02630035
+026400                                   To    W-Int-IO-Area            02640035
+026500*                                                                 02650035
+026600       When Other                                                 02660035
+026700         Call  'F115L999'                                         02670035
+026800             Using By Content      'F115L240 '                    02680035
+026900                                   'INPUT '                       02690035
+027000                   By Reference    L-Ext-IO-Area                  02700035
+027100                                   W-Int-IO-Area                  02710035
+027200                                   R7919999-Error-Area            02720035
+027300         End-Call                                                 02730035
+027400*                                                                 02740035
+027500         If  R7919999-Return-Abend                                02750035
+027600             Move  'ZI03'          To    R7919999-Paragraph       02760035
+027700             Perform Z900-Abend                                   02770035
+027800         End-If                                                   02780035
+027900*                                                                 02790035
+028000     End-Evaluate                                                 02800035
+028100*                                                                 02810035
+028200     .                                                            02820035
+028300*################################################################*02830035
+028400 ZO00-Konv-Output-Version          Section.                       02840035
+028500*                                                                 02850035
+028600* Version control.                                                02860035
+028700* If conversion is needed, we call the conversion module.         02870035
+028800*                                                                 02880035
+028900     Evaluate True                                                02890035
+029000       When L-Ext-IO-Area (1:8)    =     R115L240-Version-No      02900035
+029100       and  Length                 Of    L-Ext-IO-Area            02910035
+029200                                   Not < W-IO-Length              02920035
+029300         Move  W-Int-IO-Area       To    L-Ext-IO-Area            02930035
+029400                                                   (1:W-IO-Length)02940035
+029500*                                                                 02950035
+029600       When Other                                                 02960035
+029700         Call  'F115L999'                                         02970035
+029800             Using By Content      'F115L240 '                    02980035
+029900                                   'OUTPUT '                      02990035
+030000                   By Reference    L-Ext-IO-Area                  03000035
+030100                                   W-Int-IO-Area                  03010035
+030200                                   R7919999-Error-Area            03020035
+030300         End-Call                                                 03030035
+030400*                                                                 03040035
+030500         If  R7919999-Return-Abend                                03050035
+030600             Move  'ZO01'          To    R7919999-Paragraph       03060035
+030700             Perform Z900-Abend                                   03070035
+030800         End-If                                                   03080035
+030900*                                                                 03090035
+031000     End-Evaluate                                                 03100035
+031100*                                                                 03110035
+031200     .                                                            03120035
+031300*################################################################*03130035
+031400 Z000-Error-Message                Section.                       03140035
+031500*                                                                 03150035
+031600     Set   R7918030-Version        To    True                     03160035
+031700*                                                                 03170035
+031800     Move  'TF'                    To    R7918030-In-System-ID    03180035
+031900*    Move  &fin-inst no#           To    R7918030-In-Fin-Inst-No  03190035
+032000*    Move  &language - ISO 639-1#  To    R7918030-In-Language     03200035
+032100*                                                                 03210035
+032200*    Set   R7918030-In-Log-Yes     To    True                     03220035
+032300*                                                                 03230035
+032400     Call  'F7918030'              Using R7918030-ErrorMessage    03240035
+032500     End-Call                                                     03250035
+032600*                                                                 03260035
+032700     Move  R7918030-Out-MessageText                               03270035
+032800                                   To    R7919999-Message         03280035
+032900*                                                                 03290035
+033000     .                                                            03300035
+033100*################################################################*03310035
+033200 Z600-Error-AW                     Section.                       03320035
+033300*                                                                 03330035
+033400     If  R7919999-Return-Code      Not   Numeric                  03340035
+033500     or  Not R7919999-Return-Abend                                03350035
+033600         Move  +0                  To    R7919999-Module-Ind      03360035
+033700     End-If                                                       03370035
+033800*                                                                 03380035
+033900     Add   +1                      To    R7919999-Module-Ind      03390035
+034000*                                                                 03400035
+034100     If  R7919999-Module-Ind       Not >                          03410035
+034200                       ( Length    Of    R7919999-Module-Tab      03420035
+034300                       / Length    Of    R7919999-Module-Element )03430035
+034400         Move  'F115L240'          To    R7919999-Module-Name     03440035
+034500                                             (R7919999-Module-Ind)03450035
+034600         Move  R7919999-Paragraph  To    R7919999-Module-Para     03460035
+034700                                             (R7919999-Module-Ind)03470035
+034800     End-If                                                       03480035
+034900*                                                                 03490035
+035000     Set   R7919999-Return-Warning To    TRUE                     03500035
+035100*                                                                 03510035
+035200     Goback.                                                      03520035
+035300*################################################################*03530035
+035400 Z700-Error-AE                     Section.                       03540035
+035500*                                                                 03550035
+035600     If  R7919999-Return-Code      Not   Numeric                  03560035
+035700     or  Not R7919999-Return-Abend                                03570035
+035800         Move  +0                  To    R7919999-Module-Ind      03580035
+035900     End-If                                                       03590035
+036000*                                                                 03600035
+036100     Add   +1                      To    R7919999-Module-Ind      03610035
+036200*                                                                 03620035
+036300     If  R7919999-Module-Ind       Not >                          03630035
+036400                       ( Length    Of    R7919999-Module-Tab      03640035
+036500                       / Length    Of    R7919999-Module-Element )03650035
+036600         Move  'F115L240'          To    R7919999-Module-Name     03660035
+036700                                             (R7919999-Module-Ind)03670035
+036800         Move  R7919999-Paragraph  To    R7919999-Module-Para     03680035
+036900                                             (R7919999-Module-Ind)03690035
+037000     End-If                                                       03700035
+037100*                                                                 03710035
+037200     Set   R7919999-Return-Error   To    TRUE                     03720035
+037300*                                                                 03730035
+037400     Goback.                                                      03740035
+037500*################################################################*03750035
+037600 Z900-Abend                        Section.                       03760035
+037700*                                                                 03770035
+037800     If  R7919999-Return-Code      Not   Numeric                  03780035
+037900     or  Not R7919999-Return-Abend                                03790035
+038000         Move  +0                  To    R7919999-Module-Ind      03800035
+038100     End-If                                                       03810035
+038200*                                                                 03820035
+038300     Add   +1                      To    R7919999-Module-Ind      03830035
+038400*                                                                 03840035
+038500     If  R7919999-Module-Ind       Not >                          03850035
+038600                       ( Length    Of    R7919999-Module-Tab      03860035
+038700                       / Length    Of    R7919999-Module-Element )03870035
+038800         Move  'F115L240'          To    R7919999-Module-Name     03880035
+038900                                             (R7919999-Module-Ind)03890035
+039000         Move  R7919999-Paragraph  To    R7919999-Module-Para     03900035
+039100                                             (R7919999-Module-Ind)03910035
+039200     End-If                                                       03920035
+039300*                                                                 03930035
+039400     Set   R7919999-Return-Abend   To    TRUE                     03940035
+039500*                                                                 03950035
+039600     Goback.                                                      03960035

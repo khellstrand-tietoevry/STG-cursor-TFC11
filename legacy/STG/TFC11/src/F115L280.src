@@ -1,0 +1,442 @@
+       Identification Division.                                         00010055
+       Program-ID. F115L280.                                            00020055
+       Author.  Lars Gaustad.                                           00030055
+      *################################################################*00040055
+      *                                                                 00050055
+      * FD Trade Finance                                                00060055
+      *   Read Account and                                              00070055
+      *   find currency and exchange-rate given account-no              00080055
+      *                                                                 00090055
+      *                                                                 00100055
+      *################################################################*00110055
+      * Date ! Si! Change description                            ! 3A ! 00120055
+      *------+---+-----------------------------------------------+----+ 00130055
+      *160511!NDL! Returnerer saldo                              !LO18! 00132055
+      *------+---+-----------------------------------------------+----+ 00133055
+      *061003!LG ! Kontroll på om KKS, eller sperret             !LM04! 00140055
+      *------+---+-----------------------------------------------+----+ 00150055
+      *260400!NDL! sjekker om konto er aktiv                     !LM04! 00160055
+      *------+---+-----------------------------------------------+----+ 00170055
+      *100200!LG ! endret fra f117i010 til f203i010              !LG10! 00180055
+      *------+---+-----------------------------------------------+----+ 00190055
+      *140799!LG ! New module                                    !LG10! 00200055
+      *################################################################*00210055
+       Environment Division.                                            00220055
+       Configuration Section.                                           00230055
+       Special-Names.                                                   00240055
+           Decimal-Point Is Comma.                                      00250055
+      *                                                                 00260055
+      *################################################################*00270055
+       Data Division.                                                   00280055
+       Working-Storage Section.                                         00290055
+      *                                                                 00300055
+       01  Filler.                                                      00310055
+      *                                                                 00320055
+      *                                                                 00330055
+           05  W-IO-Length               Pic S9(04)          Comp.      00340055
+      *----------------------------------------------------------------*00350055
+      * Internal area:                                                  00360055
+           05  Ws-KKS-Status             Pic X.                         00370055
+             88 Ws-KKS                   Value 'Y'.                     00380055
+             88 Ws-Not-KKS               Value 'N'.                     00390055
+      *                                                                 00400055
+       01  W-Int-IO-Area.                                               00410055
+           Copy R115L280.                                               00420055
+      *                                                                 00430055
+      *----------------------------------------------------------------*00440055
+      * Assorted copy-areas:                                            00450055
+      *                                                                 00460055
+       01  Filler.                                                      00470055
+      *                                                                 00480055
+           Copy R203I010.                                               00490055
+       01  R116I020-If-Area.                                            00500055
+           COPY R116I020.                                               00510055
+       01  R3307610-If-Area.                                            00520055
+           COPY R3307610.                                               00530055
+       01  R1781910-If-Area.                                            00540055
+           COPY R1781910.                                               00550055
+       01  R782IKN0-If-Area.                                            00560055
+           COPY R782IKN0.                                               00570055
+      *                                                                 00580055
+      * GSM Get error message.                                          00590055
+           Copy R7918030.                                               00600055
+      * External data.                                                  00610055
+           Copy R115X000.                                               00620055
+      *################################################################.00630055
+       Linkage Section.                                                 00640055
+      *                                                                 00650055
+       01  L-Ext-IO-Area                 Pic  X(560).                   00660055
+       Copy R7919999.                                                   00670055
+      *                                                                 00680055
+      *################################################################.00690055
+       Procedure Division                Using L-Ext-IO-Area            00700055
+                                               R7919999-Error-Area.     00710055
+      *                                                                 00720055
+       A000-Main                         Section.                       00730055
+      *                                                                 00740055
+           Perform B000-Initialize                                      00750055
+      *                                                                 00760055
+           Perform ZI00-Konv-Input-Version                              00770055
+           Perform C000-Read-Account                                    00780055
+           Perform C100-Find-Exchange-Rate                              00790055
+           Perform ZO00-Konv-Output-Version                             00800055
+      *                                                                 00810055
+           Goback.                                                      00820055
+      *################################################################*00830055
+       B000-Initialize                   Section.                       00840055
+      *                                                                 00850055
+           Set   R7919999-Return-OK      To    True                     00860055
+           Initialize                          R115L280-Data            00870055
+      *                                                                 00880055
+           .                                                            00890055
+      *################################################################.00900055
+       C000-Read-Account                    Section.                    00910055
+      *                                                                 00920055
+      *                                                                 00930055
+           Initialize                          R203I010-Contract        00940055
+           Set   R203I010-Version        To    True                     00950055
+           Set   R203I010-In-Select      To    True                     00960055
+      *                                                                 00970055
+           Move  R115L280-In-Account-No  To    R203I010-In-Account-No   00980055
+      *                                                                 00990055
+           Call  'F203I010'              Using R203I010-Contract        01000055
+                                               R7919999-Error-Area      01010055
+           End-Call                                                     01020055
+      *                                                                 01030055
+           Evaluate True                                                01040055
+           When  R7919999-Retur-Abend                                   01050055
+               Move  'C001'              To    R7919999-Paragraf        01060055
+               Perform Z900-Abend                                       01070055
+           When R7919999-Return-Error                                   01080055
+               Continue                                                 01090055
+           End-Evaluate                                                 01100055
+      *                                                                 01110055
+           If R7919999-Return-Error                                     01120055
+              Perform C050-Read-RK-Account                              01130055
+              Move  'NOK'                                               01140055
+                                         To    R115L280-Currency        01150055
+              Initialize                       R7919999-Error           01160055
+      *                                                                 01170055
+              If  R115L280-Function(1:3) Not = 'TFR'                    01180055
+              and Not KTKT-Aktiv                                        01190055
+                  Initialize                   R7918030-ErrorMessage    01200055
+                  Move  'TF-SY-ACCOUNT-ENDED'                           01210055
+                                         To    R7918030-In-MessageCode  01220055
+                  Move  'VAR1'           To R7918030-In-Variable-Key(1) 01230055
+                  Move  R115L280-In-Account-No                          01240055
+                                         To R7918030-In-Variable-Data(1)01250055
+                                                                        01260055
+                  Perform Z000-Error-Message                            01270055
+                  Move  'C002'           To    R7919999-Paragraph       01280055
+                  Perform Z700-Error-AE                                 01290055
+              End-If                                                    01300055
+      *                                                                 01310055
+              If  R115L280-Function(1:3) Not = 'TFR'                    01320055
+              And KTKT-KKS-KTO                                          01330055
+      *         Display 'F115L280 RK-konto som er KKS-merket'           01340055
+                Perform C200-Read-KNRK                                  01350055
+                If Ws-KKS                                               01360055
+      *           Display 'F115L280 RK-konto som er SUM eller HVD'      01370055
+                  Initialize                   R7918030-ErrorMessage    01380055
+                  Move  'TF-SY-KKS-ACCOUNT'                             01390055
+                                         To    R7918030-In-MessageCode  01400055
+                  Move  'VAR1'           To R7918030-In-Variable-Key(1) 01410055
+                  Move  R115L280-In-Account-No                          01420055
+                                         To R7918030-In-Variable-Data(1)01430055
+                                                                        01440055
+                  Perform Z000-Error-Message                            01450055
+                  Move  'C003'           To    R7919999-Paragraph       01460055
+                  Perform Z700-Error-AE                                 01470055
+                End-If                                                  01480055
+              End-If                                                    01490055
+           Else                                                         01500055
+      *     Start behandling av VR-konto                                01510055
+              Move  R203I010-Currency                                   01520055
+                                         To    R115L280-Currency        01530055
+              Move  R203I010-Customer-Id                                01540055
+                                         To    R115L280-Customer-ID     01550055
+              Move  R203I010-Customer-No                                01560055
+                                         To    R115L280-Customer-No     01570055
+              Move  R203I010-Balance                                    01571058
+                                         To    R115L280-Balance         01572058
+                                                                        01573055
+              If  R115L280-Function(1:3) Not = 'TFR'                    01591055
+              and Not R203I010-Active                                   01600055
+                  Initialize                   R7918030-ErrorMessage    01610055
+                  Move  'TF-SY-ACCOUNT-ENDED'                           01620055
+                                         To    R7918030-In-MessageCode  01630055
+                  Move  'VAR1'           To R7918030-In-Variable-Key(1) 01640055
+                  Move  R115L280-In-Account-No                          01650055
+                                         To R7918030-In-Variable-Data(1)01660055
+                                                                        01670055
+                  Perform Z000-Error-Message                            01680055
+                  Move  'C002'           To    R7919999-Paragraph       01690055
+                  Perform Z700-Error-AE                                 01700055
+              End-If                                                    01710055
+              If  R115L280-Function(1:3) Not = 'TFR'                    01720055
+      *         Display 'F115L280 VR-konto'                             01730055
+                Perform C200-Read-KNRK                                  01740055
+                If Ws-KKS                                               01750055
+      *            Display 'F115L280 VR-konto som er SUM eller HVD'     01760055
+                  Initialize                   R7918030-ErrorMessage    01770055
+                  Move  'TF-SY-KKS-ACCOUNT'                             01780055
+                                         To    R7918030-In-MessageCode  01790055
+                  Move  'VAR1'           To R7918030-In-Variable-Key(1) 01800055
+                  Move  R115L280-In-Account-No                          01810055
+                                         To R7918030-In-Variable-Data(1)01820055
+                                                                        01830055
+                  Perform Z000-Error-Message                            01840055
+                  Move  'C004'           To    R7919999-Paragraph       01850055
+                  Perform Z700-Error-AE                                 01860055
+                End-If                                                  01870055
+              End-If                                                    01880055
+           End-If                                                       01890055
+      *                                                                 01900055
+           .                                                            01910055
+      *################################################################.01920055
+       C050-Read-RK-Account                 Section.                    01930055
+      *                                                                 01940055
+           Initialize                          R3307610-Konto-Info      01950055
+           Set R3307610-Versjon          To    True                     01960055
+           Set R3307610-In-Read          To    True                     01970055
+           Move  R115L280-In-Account-No  To    R3307610-In-Konto-Nr     01980055
+           Call  'F3307610'              Using R3307610-Konto-Info      01990055
+                                               R7919999-Error           02000055
+           End-Call                                                     02010055
+           Evaluate True                                                02020055
+           When R7919999-Retur-Abend                                    02030055
+               Move  'C051'              To    R7919999-Paragraf        02040055
+               Perform Z900-Abend                                       02050055
+           When R7919999-Return-Error                                   02060055
+               Move  'C052'              To    R7919999-Paragraf        02070055
+               Perform Z700-Error-AE                                    02080055
+           End-Evaluate                                                 02090055
+      *                                                                 02100055
+           Move  KTKT-KUNDE-ID To    R115L280-Customer-ID               02110055
+           Move  Ktkd-Saldo  In R3307610-KD-B                           02111058
+                               To    R115L280-Balance                   02112058
+      *                                                                 02130055
+      *                                                                 02140055
+      *----------------------------------------------------------------*02150055
+      * Select:                                                         02160055
+      * -------                                                         02170055
+      *                                                                 02180055
+           Initialize                          R1781910-Kunde-ID        02190055
+           Set   R1781910-Versjon        To    True                     02200055
+           Set   R1781910-In-Select      To    True                     02210055
+           Move  KTKT-KUNDE-ID           To    R1781910-In-Kunde-ID     02220055
+      *                                                                 02230055
+           Call  'F1781910'              Using R1781910-Kunde-ID        02240055
+                                               R7919999-Error           02250055
+           End-Call                                                     02260055
+           If  Not R7919999-Retur-OK                                    02270055
+               Move  'C053'              To    R7919999-Paragraf        02280055
+               Perform Z900-Abend                                       02290055
+           End-If                                                       02300055
+      *                                                                 02310055
+           Move  R1781910-Ut-Kunde-Nr    To    R115L280-Customer-No     02320055
+      *                                                                 02330055
+           .                                                            02340055
+      *################################################################.02350055
+       C100-Find-Exchange-Rate           Section.                       02360055
+      *                                                                 02370055
+           If R115L280-Currency = 'NOK'                                 02380055
+              Move 100,0                 To    R115L280-Exchange-Rate   02390055
+           Else                                                         02400055
+              Initialize                          R116I020-Valuta-Kurser02410055
+              Set   R116I020-Versjon     To    True                     02420055
+              Set   R116I020-In-Get-1st  To    True                     02430055
+              Move  R115L280-Inst-No                                    02440055
+                                         To    R116I020-In-Konsern-Nr   02450055
+      *                                                                 02460055
+      * Dato behøver kun fylles ut dersom man ikke ønsker dagens dato.  02470055
+              Move  R115L280-In-Date     To    R116I020-In-Dato         02480055
+      *                                                                 02490055
+      * Dersom valuta-sort ikke fylles ut returneres alle, én og én.    02500055
+             Move  R115L280-Currency     To    R116I020-In-Valuta-Sort  02510055
+      *                                                                 02520055
+              Call  'F116I020'           Using R116I020-Valuta-Kurser   02530055
+                                               R7919999-Error           02540055
+              End-Call                                                  02550055
+      *                                                                 02560055
+              Evaluate True                                             02570055
+                When  R7919999-Retur-Abend                              02580055
+                  Move  'C101'           To    R7919999-Paragraf        02590055
+                  Perform Z900-Abend                                    02600055
+                When R7919999-Return-Error                              02610055
+                  Move  'C102'           To    R7919999-Paragraph       02620055
+                  Perform Z700-Error-AE                                 02630055
+              End-Evaluate                                              02640055
+              Move R116I020-Ut-Midtkurs  To    R115L280-Exchange-Rate   02650055
+           End-If                                                       02660055
+                                                                        02670055
+      *                                                                 02680055
+           .                                                            02690055
+      *################################################################.02700055
+       C200-Read-KNRK                    Section.                       02710055
+      *                                                                 02720055
+      * KNRK er historikk-tabell for KKS, og oppdateres hver morgen     02730055
+      * Ved å kvalifisere med konto og dato, finner vi hvilken rolle    02740055
+      * kontoen har i KKS i dag.                                        02750055
+      *                                                                 02760055
+      *                                                                 02770055
+           Initialize                          R782IKN0-KNRK            02780055
+           Set   R782IKN0-Version        To    True                     02790055
+           Set   R782IKN0-In-Select      To    True                     02800055
+      *                                                                 02810055
+           Set   Ws-Not-KKS              To    True                     02820055
+      *                                                                 02830055
+           Move  R115L280-In-Date        To    R782IKN0-In-Dato         02840055
+           Move  R115L280-In-Account-No  To    R782IKN0-In-Kto-Nr       02850055
+      *                                                                 02860055
+           Call  'F782IKN0'              Using R782IKN0-KNRK            02870055
+                                               R7919999-Error-Area      02880055
+           End-Call                                                     02890055
+      *                                                                 02900055
+           Evaluate True                                                02910055
+             When R7919999-Return-Abend                                 02920055
+               Move  'C201'              To    R7919999-Paragraph       02930055
+               Perform Z900-Abend                                       02940055
+      *                                                                 02950055
+             When R7919999-Return-Error                                 02960055
+               Initialize R7919999-ERROR-AREA                           02970055
+               Set Ws-Not-KKS            To    True                     02980055
+      *                                                                 02990055
+             When R7919999-Return-OK                                    03000055
+               If R782IKN0-Hovedkonto Or                                03010055
+                  R782IKN0-Sumkonto                                     03020055
+                 Set Ws-KKS              To    True                     03030055
+               End-If                                                   03040055
+      *                                                                 03050055
+           End-Evaluate                                                 03060055
+      *                                                                 03070055
+           .                                                            03080055
+      *################################################################*03090055
+       Z000-Error-Message                 Section.                      03100055
+      *                                                                 03110055
+           Set   R7918030-Version        To    True                     03120055
+      *                                                                 03130055
+           Move  'TF'                    To    R7918030-In-System-ID    03140055
+           Move  R115X000-Fin-Inst-No    To    R7918030-In-Fin-Inst-No  03150055
+           Move  R115X000-FI-Language-639-1                             03160055
+                                         To    R7918030-In-Language     03170055
+      *                                                                 03180055
+           If  R115X000-Trace-On                                        03190055
+               Set  R7918030-In-Log-Yes  To    True                     03200055
+           End-If                                                       03210055
+      *                                                                 03220055
+           Call  'F7918030'              Using R7918030-ErrorMessage    03230055
+           End-Call                                                     03240055
+      *                                                                 03250055
+           Move  R7918030-Out-MessageText                               03260055
+                                         To    R7919999-Message         03270055
+      *                                                                 03280055
+           .                                                            03290055
+      *################################################################.03300055
+       ZI00-Konv-Input-Version           Section.                       03310055
+      *                                                                 03320055
+      * Version control.                                                03330055
+      * If conversion is needed, we call the conversion module.         03340055
+      *                                                                 03350055
+           Set   R115L280-Version        To    True                     03360055
+           Move  Length               Of   R115L280-Find-Currency       03370055
+                                         To    W-IO-Length              03380055
+      *                                                                 03390055
+           Evaluate True                                                03400055
+             When L-Ext-IO-Area (1:8)    =     R115L280-Version-No      03410055
+             and  Length                 Of    L-Ext-IO-Area            03420055
+                                         Not < W-IO-Length              03430055
+               Move  L-Ext-IO-Area (1:W-IO-Length)                      03440055
+                                         To    W-Int-IO-Area            03450055
+      *                                                                 03460055
+             When Other                                                 03470055
+               Call  'F115L999'                                         03480055
+                   Using By Content      'F115L280 '                    03490055
+                                         'INPUT '                       03500055
+                         By Reference    L-Ext-IO-Area                  03510055
+                                         W-Int-IO-Area                  03520055
+                                         R7919999-Error-Area            03530055
+               End-Call                                                 03540055
+      *                                                                 03550055
+               If  R7919999-Return-Abend                                03560055
+                   Move  'ZI03'          To    R7919999-Paragraph       03570055
+                   Perform Z900-Abend                                   03580055
+               End-If                                                   03590055
+      *                                                                 03600055
+           End-Evaluate                                                 03610055
+      *                                                                 03620055
+           .                                                            03630055
+      *################################################################*03640055
+       ZO00-Konv-Output-Version          Section.                       03650055
+      *                                                                 03660055
+      * Version control.                                                03670055
+      * If conversion is needed, we call the conversion module.         03680055
+      *                                                                 03690055
+           Evaluate True                                                03700055
+             When L-Ext-IO-Area (1:8)    =     R115L280-Version-No      03710055
+             and  Length                 Of    L-Ext-IO-Area            03720055
+                                         Not < W-IO-Length              03730055
+               Move  W-Int-IO-Area       To    L-Ext-IO-Area            03740055
+                                                         (1:W-IO-Length)03750055
+      *                                                                 03760055
+             When Other                                                 03770055
+               Call  'F115L999'                                         03780055
+                   Using By Content      'F115L280 '                    03790055
+                                         'OUTPUT '                      03800055
+                         By Reference    L-Ext-IO-Area                  03810055
+                                         W-Int-IO-Area                  03820055
+                                         R7919999-Error-Area            03830055
+               End-Call                                                 03840055
+      *                                                                 03850055
+               If  R7919999-Return-Abend                                03860055
+                   Move  'ZO01'          To    R7919999-Paragraph       03870055
+                   Perform Z900-Abend                                   03880055
+               End-If                                                   03890055
+      *                                                                 03900055
+           End-Evaluate                                                 03910055
+      *                                                                 03920055
+           .                                                            03930055
+      *################################################################*03940055
+       Z700-Error-AE                     Section.                       03950055
+      *                                                                 03960055
+           If  R7919999-Return-Code      Not   Numeric                  03970055
+           or  Not R7919999-Return-Error                                03980055
+               Move  +0                  To    R7919999-Module-Ind      03990055
+           End-If                                                       04000055
+      *                                                                 04010055
+           Add   +1                      To    R7919999-Module-Ind      04020055
+      *                                                                 04030055
+           If  R7919999-Module-Ind       Not >                          04040055
+                             ( Length    Of    R7919999-Module-Tab      04050055
+                             / Length    Of    R7919999-Module-Element )04060055
+               Move  'F115L280'          To    R7919999-Module-Name     04070055
+                                                   (R7919999-Module-Ind)04080055
+               Move  R7919999-Paragraph  To    R7919999-Module-Para     04090055
+                                                   (R7919999-Module-Ind)04100055
+           End-If                                                       04110055
+      *                                                                 04120055
+           Set   R7919999-Return-Error   To    TRUE                     04130055
+      *                                                                 04140055
+           Goback.                                                      04150055
+      *################################################################*04160055
+       Z900-Abend                        Section.                       04170055
+      *                                                                 04180055
+           If  R7919999-Return-Code      Not   Numeric                  04190055
+           or  Not R7919999-Return-Abend                                04200055
+               Move  +0                  To    R7919999-Module-Ind      04210055
+           End-If                                                       04220055
+      *                                                                 04230055
+           Add   +1                      To    R7919999-Module-Ind      04240055
+      *                                                                 04250055
+           If  R7919999-Module-Ind       Not >                          04260055
+                             ( Length    Of    R7919999-Module-Tab      04270055
+                             / Length    Of    R7919999-Module-Element )04280055
+               Move  'F115L280'          To    R7919999-Module-Name     04290055
+                                                   (R7919999-Module-Ind)04300055
+               Move  R7919999-Paragraph  To    R7919999-Module-Para     04310055
+                                                   (R7919999-Module-Ind)04320055
+           End-If                                                       04330055
+      *                                                                 04340055
+           Set   R7919999-Return-Abend   To    TRUE                     04350055
+      *                                                                 04360055
+           Goback.                                                      04370055

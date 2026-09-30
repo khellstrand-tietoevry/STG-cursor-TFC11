@@ -1,0 +1,21 @@
+graph TD
+  EP[FTFCH110 entry]:::entry
+  EP --> K[FTFCK110]
+  EP --> L[FTFCL110]
+  K --> L050[F115L050]
+  K --> IPA0[F115IPA0]
+  K --> IRP0[F115IRP0]
+  K --> ISC0[F115ISC0]
+  K --> ISR0[F115ISR0]
+  K --> L280[F115L280]
+  L --> ICU0[F115ICU0]
+  L --> IMC0[F115IMC0]
+  L --> ITP0[F115ITP0]
+  L --> L030[F115L030]
+  L --> L140[F115L140]
+  L050 --> IMC0
+  L050 --> IPA0
+  K --> EXT[BPOXING0 F7918030 F791TRAC external]
+  L050 --> EXT2[F115IPC0 F115ICH0 F115IEI0 external]
+  L --> EXT2
+  classDef entry fill:#6bb85a,stroke:#333,color:#111;

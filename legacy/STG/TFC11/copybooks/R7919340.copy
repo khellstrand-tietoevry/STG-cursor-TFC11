@@ -1,0 +1,7 @@
+           03  R7919340-Bokstav-Type.
+             05 R7919340-Version-No Pic X(08).
+                88 R7919340-Versjon Value '00000001'.
+             05 R7919340-Action Pic X(01).
+                88 R7919340-In-Store-Bokstaver Value 'U'.
+             05 R7919340-In-Tekst Pic X(80).
+             05 R7919340-Ut-Tekst Pic X(80).

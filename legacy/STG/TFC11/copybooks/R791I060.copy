@@ -1,0 +1,7 @@
+           03  R791I060-Land.
+             05 R791I060-Version-No Pic X(08).
+                88 R791I060-Versjon Value '00000001'.
+             05 R791I060-Action Pic X(16).
+                88 R791I060-In-Select Value 'SELECT'.
+             05 R791I060-In-ISO-Kode-X2 Pic X(02).
+             05 R791I060-Meldings-Kode Pic X(30).
