@@ -1,5 +1,9 @@
 # TFC11 — Legacy COBOL (Create Customer)
 
+> **Archived.** Maintenance continues in
+> [tfi-translation-parity `STG/STG-cursor-TFC11`](https://github.com/tietoevryfs/tfi-translation-parity/tree/main/STG/STG-cursor-TFC11).
+> See [`ARCHIVED.md`](ARCHIVED.md).
+
 Standalone copy of the legacy COBOL source for mainframe **TFC11** (create
 customer), extracted for modernization analysis with the Cursor
 **code-modernization** plugin.
